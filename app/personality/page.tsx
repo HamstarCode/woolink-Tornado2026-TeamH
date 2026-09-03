@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { QUESTION_BANK } from "./data-questions";
 import { BALANCE_TYPE, TYPE_DATA } from "./data-types";
+import { supabase } from "@/lib/supabase";
 
 type Question = {
   id: string;
@@ -182,11 +183,17 @@ export default function PersonalityPage() {
   >("quiz");
 
   const [order, setOrder] = useState<Question[]>([]);
-  const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [answers, setAnswers] = useState<
+    Record<string, number>
+  >({});
   const [result, setResult] = useState<Result | null>(null);
 
   // 結果の詳細表示
   const [showDetails, setShowDetails] = useState(false);
+
+  // DB保存中
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   const answeredCount = Object.keys(answers).length;
 
@@ -219,13 +226,69 @@ export default function PersonalityPage() {
     setScreen("calculating");
   };
 
+  // =========================
+  // 診断結果を計算
+  // =========================
   useEffect(() => {
     if (screen !== "calculating") return;
 
-    const timer = window.setTimeout(() => {
+    const timer = window.setTimeout(async () => {
       const calculated = calculateResult(answers);
 
       setResult(calculated);
+
+      // =========================
+      // DB保存用の性格タイプを作成
+      // =========================
+      const personalityType = calculated.axisKey
+        ? `${calculated.axisKey}_${calculated.energyDir}`
+        : "balance";
+
+      setIsSaving(true);
+      setSaveError("");
+
+      // ログイン中のユーザーを取得
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        console.error(
+          "ログイン情報取得エラー:",
+          userError?.message
+        );
+
+        setSaveError(
+          "ログイン情報を取得できませんでした。"
+        );
+        setIsSaving(false);
+        setScreen("result");
+        return;
+      }
+
+      // =========================
+      // personality_typeを保存
+      // =========================
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({
+          personality_type: personalityType,
+        })
+        .eq("id", user.id);
+
+      if (updateError) {
+        console.error(
+          "性格タイプ保存エラー:",
+          updateError.message
+        );
+
+        setSaveError(
+          "診断結果の保存に失敗しました。"
+        );
+      }
+
+      setIsSaving(false);
       setScreen("result");
     }, 900);
 
@@ -238,6 +301,7 @@ export default function PersonalityPage() {
     setAnswers({});
     setResult(null);
     setShowDetails(false);
+    setSaveError("");
     setScreen("quiz");
   };
 
@@ -246,7 +310,9 @@ export default function PersonalityPage() {
   const resultType = result
     ? isBalance
       ? balanceType
-      : typeData[`${result.axisKey}_${result.energyDir}`]
+      : typeData[
+          `${result.axisKey}_${result.energyDir}`
+        ]
     : null;
 
   // =========================
@@ -459,6 +525,15 @@ export default function PersonalityPage() {
             </div>
           </section>
 
+          {/* 保存エラー */}
+          {saveError && (
+            <section className="rounded-2xl border border-red-200 bg-white px-5 py-4">
+              <p className="text-sm leading-6 text-red-500">
+                {saveError}
+              </p>
+            </section>
+          )}
+
           {/* 最初に見せる説明 */}
           <section className="rounded-2xl border border-[#efe1cd] bg-white px-5 py-5">
             <h2 className="text-sm font-bold text-[#ff8a63]">
@@ -518,13 +593,12 @@ export default function PersonalityPage() {
           </button>
 
           {/* ホーム */}
-          <button
-            type="button"
-            onClick={() => router.push("/home")}
-            className="w-full rounded-full bg-gradient-to-b from-[#ff9c78] to-[#ff8a63] px-9 py-4 text-base font-bold text-white shadow-[0_10px_24px_rgba(255,138,99,0.32)]"
-          >
-            ホームへ
-          </button>
+        <button
+          type="button"
+          onClick={() => router.push("/home")}
+        >
+          ホームへ
+        </button>
         </div>
       </main>
     );

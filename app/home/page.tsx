@@ -1,14 +1,37 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import "./home.css";
+import { supabase } from "@/lib/supabase";
 
 export default function HomePage() {
+  const router = useRouter();
+
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
+  // =========================
+  // ログアウト
+  // =========================
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      console.error(
+        "ログアウトエラー:",
+        error.message
+      );
+      return;
+    }
+
+    router.replace("/");
+  };
+
+  // =========================
   // メニュー外をクリックしたら閉じる
+  // =========================
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
@@ -24,7 +47,10 @@ export default function HomePage() {
       }
     };
 
-    document.addEventListener("click", handleClickOutside);
+    document.addEventListener(
+      "click",
+      handleClickOutside
+    );
 
     return () => {
       document.removeEventListener(
@@ -137,13 +163,15 @@ export default function HomePage() {
               <ArrowIcon />
             </a>
 
-            <a
+            {/* ログアウト */}
+            <button
+              type="button"
               className="menu-item"
-              href="/"
+              onClick={handleLogout}
             >
               <span>ログアウト</span>
               <ArrowIcon />
-            </a>
+            </button>
           </nav>
         )}
 
