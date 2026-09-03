@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 export default function Home() {
+  const router = useRouter();
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
@@ -15,6 +17,9 @@ export default function Home() {
   const handleGoogleLogin = async () => {
     await supabase.auth.signInWithOAuth({
       provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/onboarding`,
+      },
     });
   };
 
@@ -34,6 +39,16 @@ export default function Home() {
             <p className="text-sm text-gray-600">
               {user.email}
             </p>
+
+            <button
+              onClick={async () => {
+                await supabase.auth.signOut();
+                setUser(null);
+              }}
+              className="mt-4 rounded-lg border px-4 py-2"
+            >
+              ログアウト
+            </button>
           </div>
         ) : (
           <button
