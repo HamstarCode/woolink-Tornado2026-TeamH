@@ -7,7 +7,7 @@ import { savePrivateDiary } from "@/lib/diaryExchange";
 import "./movie.css";
 
 const VIDEO_SERVICE_URL = process.env.NEXT_PUBLIC_VIDEO_SERVICE_URL
-  ?? "https://tornado2026-tearmh.onrender.com";
+  ?? "https://woolink-video-service.onrender.com";
 
 type GeneratedVideo = { videoUrl: string; persisted: boolean };
 

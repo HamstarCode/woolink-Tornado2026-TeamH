@@ -6,7 +6,7 @@ export const maxDuration = 60;
 
 const VIDEO_SERVICE_URL = process.env.VIDEO_SERVICE_URL
   ?? process.env.NEXT_PUBLIC_VIDEO_SERVICE_URL
-  ?? "https://tornado2026-tearmh.onrender.com";
+  ?? "https://woolink-video-service.onrender.com";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
