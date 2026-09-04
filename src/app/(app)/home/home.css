@@ -58,6 +58,7 @@ body {
 }
 
 .friend-card {
+  position: relative;
   display: block;
   background: linear-gradient(135deg, rgba(91,105,224,.92), rgba(64,79,190,.92));
   border: 1px solid rgba(255, 255, 255, 0.16);

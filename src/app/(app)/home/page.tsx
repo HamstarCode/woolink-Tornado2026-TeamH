@@ -15,7 +15,39 @@ export default function HomePage() {
 
   const [userId, setUserId] = useState<string | null>(null);
   const [friendCount, setFriendCount] = useState<number | null>(null);
+  const [hasFriendRequests, setHasFriendRequests] = useState(false);
+  const [hasIncomingDiary, setHasIncomingDiary] = useState(false);
   const [matches, setMatches] = useState<MatchWithFriend[]>([]);
+
+  const refreshNotificationFlags = useCallback(async () => {
+    const [{ data: { user } }, requestsResponse] = await Promise.all([
+      supabase.auth.getUser(),
+      fetch("/api/friend-requests", { cache: "no-store" }),
+    ]);
+    if (!user) return;
+    const requests = (await requestsResponse.json().catch(() => null)) as { incoming?: unknown[] } | null;
+    setHasFriendRequests(Boolean(requests?.incoming?.length));
+
+    const { data: submissions } = await supabase
+      .from("submissions")
+      .select("room_id, submission_kind")
+      .eq("user_id", user.id)
+      .eq("submission_kind", "exchange")
+      .not("room_id", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    let incoming = false;
+    for (const submission of submissions ?? []) {
+      if (!submission.room_id) continue;
+      const { data: room } = await supabase.rpc("get_diary_room", { p_room_id: submission.room_id });
+      const diary = room?.[0] as { partner_diary?: string | null; my_reply_content?: string | null; my_reply_reaction?: string | null } | undefined;
+      if (diary?.partner_diary && !diary.my_reply_content && !diary.my_reply_reaction) {
+        incoming = true;
+        break;
+      }
+    }
+    setHasIncomingDiary(incoming);
+  }, [supabase]);
 
   const refreshMatches = useCallback(async () => {
     const results = await Promise.all(
@@ -43,9 +75,10 @@ export default function HomePage() {
         const { friends } = await fRes.json();
         setFriendCount((friends ?? []).length);
       }
+      await refreshNotificationFlags();
       await refreshMatches();
     })();
-  }, [supabase, refreshMatches]);
+  }, [supabase, refreshMatches, refreshNotificationFlags]);
 
   useEffect(() => {
     if (!userId) return;
@@ -72,6 +105,7 @@ export default function HomePage() {
       <div className="phone">
         <section className="content">
           <Link className="friend-card" href="/friends">
+            <span className={`badge ${hasFriendRequests ? "is-visible" : ""}`} aria-hidden="true" />
             <h1>友達一覧</h1>
             <p>
               {friendCount === null
@@ -95,7 +129,7 @@ export default function HomePage() {
 
           <section className="actions">
             <Link className="action-tile diary" href="/diary">
-              <span className="badge" aria-hidden="true" />
+              <span className={`badge ${hasIncomingDiary ? "is-visible" : ""}`} aria-hidden="true" />
               <svg className="tile-icon" viewBox="0 0 48 48" width="40" height="40" aria-hidden="true">
                 <rect x="12" y="8" width="24" height="32" rx="3" fill="#fbfaf6" />
                 <rect x="9" y="10" width="24" height="32" rx="3" fill="#ffffff" stroke="#dcd8cc" strokeWidth="1" />
