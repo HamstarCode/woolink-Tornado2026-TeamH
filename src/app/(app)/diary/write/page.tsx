@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { VIDEO_STUDIO_URL } from "@/lib/external-links";
 import "./write.css";
 
 export default function DiaryWritePage() {
@@ -65,26 +64,6 @@ export default function DiaryWritePage() {
           <p className="hint-text">
             ヒント：今日のお昼ごはんは？
           </p>
-
-          {/* 写真→動画(video-diary)は別デプロイの独立アプリなので、動画を
-              直接添付する手段は無い。生成した動画のURLをコピーして本文に
-              貼ると、相手が読むときに自動で埋め込み再生される
-              (src/components/DiaryBody.tsx が本文中の .mp4 URL を検出)。 */}
-          <a
-            href={VIDEO_STUDIO_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: "inline-block",
-              fontSize: 12,
-              color: "#c7cae4",
-              textDecoration: "underline",
-              textUnderlineOffset: 3,
-              marginBottom: 10,
-            }}
-          >
-            🎬 写真から動画を作って、URLをここに貼る ↗
-          </a>
 
           <textarea
             className="diary-textarea"

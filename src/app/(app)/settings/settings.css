@@ -91,3 +91,10 @@
 .settings-result.is-error {
   color: #ffd0d0;
 }
+
+.settings-admin-note {
+  margin: 10px 0 0;
+  color: #aeb4d7;
+  font-size: 11px;
+  text-align: center;
+}

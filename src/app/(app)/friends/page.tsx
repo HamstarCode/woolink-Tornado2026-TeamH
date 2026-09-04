@@ -15,6 +15,7 @@ export default function FriendsPage() {
   const [friends, setFriends] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [workingId, setWorkingId] = useState<string | null>(null);
+  const [removingId, setRemovingId] = useState<string | null>(null);
   const [publicUserId, setPublicUserId] = useState("");
   const [adding, setAdding] = useState(false);
   const [addMessage, setAddMessage] = useState("");
@@ -77,6 +78,21 @@ export default function FriendsPage() {
     setAdding(false);
   };
 
+  const removeFriend = async (friend: Profile) => {
+    if (removingId || !window.confirm(`${friend.name}さんとのフレンド関係を解除しますか？`)) return;
+    setRemovingId(friend.id);
+    setError("");
+    const response = await fetch("/api/friends", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ friendId: friend.id }),
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) setError(body.error ?? "フレンドを解除できませんでした。");
+    else await load();
+    setRemovingId(null);
+  };
+
   return <WoolinkScreen title="フレンド" back="/home">
     <section className="friend-add-box">
       <label htmlFor="friend-public-id">公開IDでフレンドを追加</label>
@@ -124,6 +140,14 @@ export default function FriendsPage() {
       {friends.length === 0 ? <p className="friends-empty">まだフレンドはいません。</p> : friends.map((friend) => (
         <article className="friend-list-row is-friend" key={friend.id}>
           <Avatar profile={friend} /><strong>{friend.name}</strong>
+          <button
+            className="friend-remove-button"
+            type="button"
+            disabled={removingId === friend.id}
+            onClick={() => void removeFriend(friend)}
+          >
+            {removingId === friend.id ? "解除中..." : "解除"}
+          </button>
         </article>
       ))}
       {friends.length > 0 && <Link className="friends-call-link" href="/call">日調でフレンドを選ぶ</Link>}

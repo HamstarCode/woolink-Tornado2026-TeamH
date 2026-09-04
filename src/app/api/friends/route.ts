@@ -35,3 +35,27 @@ export async function GET() {
     })),
   });
 }
+
+export async function DELETE(request: Request) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "ログインが必要です。" }, { status: 401 });
+  }
+
+  const body = (await request.json().catch(() => null)) as {
+    friendId?: unknown;
+  } | null;
+  if (typeof body?.friendId !== "string" || !body.friendId) {
+    return NextResponse.json({ error: "解除する相手が指定されていません。" }, { status: 400 });
+  }
+
+  const { data, error } = await supabase.rpc("remove_friend", {
+    p_friend_id: body.friendId,
+  });
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (!data) return NextResponse.json({ error: "フレンド関係が見つかりません。" }, { status: 404 });
+  return NextResponse.json({ status: "removed" });
+}

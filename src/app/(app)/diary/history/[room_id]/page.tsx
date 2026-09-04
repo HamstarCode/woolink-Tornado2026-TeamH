@@ -100,6 +100,8 @@ export default function DiaryHistoryDetailPage() {
                 <h2>
                   {detail.partner_nickname
                     ? `${detail.partner_nickname}さんからの返信`
+                    : detail.submissionKind === "private"
+                      ? "保存状況"
                     : "交換状況"}
                 </h2>
                 {detail.partnerReplyReaction && (
@@ -115,7 +117,9 @@ export default function DiaryHistoryDetailPage() {
                   </p>
                 ) : !detail.room_id ? (
                   <p className="history-detail-muted">
-                    交換相手を探しています
+                    {detail.submissionKind === "private"
+                      ? "自分用の思い出として保存しました"
+                      : "交換相手を探しています"}
                   </p>
                 ) : null}
               </section>

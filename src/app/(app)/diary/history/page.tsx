@@ -95,14 +95,16 @@ export default function DiaryHistoryPage() {
                       key={entry.submissionId}
                       aria-label={entry.partnerNickname
                         ? `${entry.partnerNickname}さんとの${date}の交換日記`
+                        : entry.submissionKind === "private"
+                          ? `${date}の自分用の日記`
                         : `${date}の提出日記（交換相手を探しています）`}
                     >
                       <span className="history-card-name">
-                        {entry.partnerNickname ?? "交換相手を探しています"}
+                        {entry.partnerNickname ?? (entry.submissionKind === "private" ? "わたしの思い出" : "交換相手を探しています")}
                       </span>
                       <span className="history-card-line" />
                       <span className="history-card-status">
-                        {entry.roomId ? "交換日記" : "提出済み"}
+                        {entry.roomId ? "交換日記" : entry.submissionKind === "private" ? "自分用に保存" : "提出済み"}
                       </span>
                       <span className="history-card-date">{date}</span>
                       <span className="history-card-line" />

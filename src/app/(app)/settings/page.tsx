@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import "./settings.css";
 
 const supabase = createClient();
+const FORCE_MATCH_ADMIN_EMAIL = "aikii1012@gmail.com";
 
 type ForceMatchResult = {
   matched_count: number;
@@ -17,6 +18,15 @@ export default function SettingsPage() {
   const [isMatching, setIsMatching] = useState(false);
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    void supabase.auth.getUser().then(({ data }) => {
+      if (active) setIsAdmin(data.user?.email?.toLowerCase() === FORCE_MATCH_ADMIN_EMAIL);
+    });
+    return () => { active = false; };
+  }, []);
 
   const handleForceMatch = async () => {
     if (!window.confirm("現在のEX期間の未マッチ提出を強制マッチしますか？")) return;
@@ -63,10 +73,18 @@ export default function SettingsPage() {
             className="settings-force-match"
             type="button"
             onClick={handleForceMatch}
-            disabled={isMatching}
+            disabled={isMatching || isAdmin !== true}
           >
-            {isMatching ? "マッチング中..." : "強制マッチを実行"}
+            {isAdmin === null
+              ? "権限を確認中..."
+              : isMatching
+                ? "マッチング中..."
+                : "強制マッチを実行"}
           </button>
+
+          {isAdmin === false && (
+            <p className="settings-admin-note">この操作は管理者のみ実行できます。</p>
+          )}
 
           {message && (
             <p className={`settings-result${isError ? " is-error" : ""}`} role="status">

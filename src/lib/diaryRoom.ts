@@ -21,6 +21,7 @@ export type DiaryHistoryEntry = {
   partnerUserId: string | null;
   partnerNickname: string | null;
   hasPartnerReply: boolean;
+  submissionKind: "exchange" | "private";
 };
 
 export type DiaryHistoryDetail = {
@@ -35,6 +36,7 @@ export type DiaryHistoryDetail = {
   my_reply_reaction: string | null;
   partnerReplyContent: string | null;
   partnerReplyReaction: string | null;
+  submissionKind: "exchange" | "private";
 };
 
 export async function getDiaryRoom(roomId: string) {
@@ -74,7 +76,7 @@ export async function getDiaryHistory() {
 
   const { data, error } = await supabase
     .from("submissions")
-    .select("id, room_id, created_at")
+    .select("id, room_id, created_at, submission_kind")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -90,6 +92,7 @@ export async function getDiaryHistory() {
           partnerUserId: null,
           partnerNickname: null,
           hasPartnerReply: false,
+          submissionKind: submission.submission_kind === "private" ? "private" : "exchange",
         };
       }
 
@@ -102,6 +105,7 @@ export async function getDiaryHistory() {
           partnerUserId: room.partner_user_id,
           partnerNickname: room.partner_nickname,
           hasPartnerReply: Boolean(room.my_reply_content || room.my_reply_reaction),
+          submissionKind: submission.submission_kind === "private" ? "private" : "exchange",
         };
       } catch {
         return {
@@ -111,6 +115,7 @@ export async function getDiaryHistory() {
           partnerUserId: null,
           partnerNickname: null,
           hasPartnerReply: false,
+          submissionKind: submission.submission_kind === "private" ? "private" : "exchange",
         };
       }
     }),
@@ -127,7 +132,7 @@ export async function getDiaryHistoryDetail(submissionId: string) {
 
   const { data: mySubmission, error: submissionError } = await supabase
     .from("submissions")
-    .select("id, room_id, diary, created_at")
+    .select("id, room_id, diary, created_at, submission_kind")
     .eq("id", submissionId)
     .eq("user_id", user.id)
     .maybeSingle();
@@ -148,6 +153,7 @@ export async function getDiaryHistoryDetail(submissionId: string) {
       my_reply_reaction: null,
       partnerReplyContent: null,
       partnerReplyReaction: null,
+      submissionKind: mySubmission.submission_kind === "private" ? "private" : "exchange",
     } satisfies DiaryHistoryDetail;
   }
 
@@ -173,5 +179,6 @@ export async function getDiaryHistoryDetail(submissionId: string) {
     my_reply_reaction: room.my_reply_reaction,
     partnerReplyContent: partnerReply?.content ?? null,
     partnerReplyReaction: partnerReply?.reaction ?? null,
+    submissionKind: mySubmission.submission_kind === "private" ? "private" : "exchange",
   } satisfies DiaryHistoryDetail;
 }

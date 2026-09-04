@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { submitDiary } from "@/lib/diaryExchange";
+import DiaryBody from "@/components/DiaryBody";
 import "./confirm.css";
 
 type Recipient =
@@ -73,7 +74,7 @@ export default function DiaryConfirmPage() {
 
             <div className="content-preview">
               {diary ? (
-                <p className="diary-preview-text">{diary}</p>
+                <div className="diary-preview-text"><DiaryBody text={diary} /></div>
               ) : (
                 <p>日記の本文がありません。戻って入力してください。</p>
               )}

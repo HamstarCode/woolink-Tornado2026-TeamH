@@ -29,3 +29,16 @@ export async function submitDiary(diary: string, targetPublicUserId: string | nu
 
   return result;
 }
+
+/** 交換に出さず、そのExchangeの自分用日記として保存する。 */
+export async function savePrivateDiary(diary: string) {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("save_private_diary", {
+    p_diary: diary.trim(),
+  });
+
+  if (error) throw new Error(error.message || "思い出の保存に失敗しました。");
+  const result = (data?.[0] ?? null) as { submission_id: string } | null;
+  if (!result) throw new Error("保存結果を確認できませんでした。");
+  return result;
+}

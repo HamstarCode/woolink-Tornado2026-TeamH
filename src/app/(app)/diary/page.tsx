@@ -11,6 +11,7 @@ type Status =
   | { kind: "loading" }
   | { kind: "not-submitted" }
   | { kind: "waiting" }
+  | { kind: "private-saved" }
   | { kind: "matched"; roomId: string };
 
 export default function DiaryPage() {
@@ -26,7 +27,7 @@ export default function DiaryPage() {
 
       const { data } = await supabase
         .from("submissions")
-        .select("room_id, created_at")
+        .select("room_id, created_at, submission_kind")
         .eq("user_id", user.id)
         .gte("created_at", diaryWindowStart().toISOString())
         .order("created_at", { ascending: false })
@@ -35,6 +36,8 @@ export default function DiaryPage() {
 
       if (!data) {
         setStatus({ kind: "not-submitted" });
+      } else if (data.submission_kind === "private") {
+        setStatus({ kind: "private-saved" });
       } else if (data.room_id) {
         setStatus({ kind: "matched", roomId: data.room_id as string });
       } else {
@@ -72,6 +75,12 @@ export default function DiaryPage() {
             {status.kind === "waiting" && (
               <p className="diary-status">
                 提出済みです。相手が見つかるまでお待ちください（今夜また確認してみてください）。
+              </p>
+            )}
+
+            {status.kind === "private-saved" && (
+              <p className="diary-status">
+                今日の日記は、わたしの思い出として保存済みです。
               </p>
             )}
 
