@@ -23,13 +23,15 @@ export async function GET(_request: Request, { params }: { params: Promise<{ tok
 
   const { data: creator } = await admin
     .from("profiles")
-    .select("name, avatar_url")
+    .select("nickname, avatar_url")
     .eq("id", invite.creator_user_id)
     .maybeSingle();
 
   return NextResponse.json({
     date: invite.date,
     expired,
-    creator: creator ?? { name: "友達", avatar_url: null },
+    creator: creator
+      ? { name: creator.nickname, avatar_url: creator.avatar_url }
+      : { name: "友達", avatar_url: null },
   });
 }

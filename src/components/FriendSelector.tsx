@@ -6,7 +6,6 @@ export interface FriendOption {
   id: string;
   name: string;
   avatar_url: string | null;
-  is_demo?: boolean;
 }
 
 interface FriendSelectorProps {
@@ -21,7 +20,7 @@ export default function FriendSelector({ friends, selectedIds, onToggle }: Frien
   if (friends.length === 0) {
     return (
       <p className="text-sm text-moon/50 text-center py-6">
-        まだ友達がいません。招待リンクで誘ってみましょう。
+        まだフレンドがいません。交換日記から出会ってみましょう。
       </p>
     );
   }
@@ -43,9 +42,6 @@ export default function FriendSelector({ friends, selectedIds, onToggle }: Frien
             <Avatar src={f.avatar_url} name={f.name} />
             <span className="flex-1 text-sm text-moon">
               {f.name}
-              {f.is_demo && (
-                <span className="ml-1.5 text-[10px] text-accent/70 align-middle">🌙 サンプル</span>
-              )}
             </span>
             <span
               className={[

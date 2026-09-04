@@ -7,9 +7,9 @@ import { savePrivateDiary } from "@/lib/diaryExchange";
 import "./movie.css";
 
 const VIDEO_SERVICE_URL = process.env.NEXT_PUBLIC_VIDEO_SERVICE_URL
-  ?? "https://tornado2026-tearmh.onrender.com";
+  ?? "https://woolink-video-service.onrender.com";
 
-type GeneratedVideo = { videoUrl: string };
+type GeneratedVideo = { videoUrl: string; persisted: boolean };
 
 export default function DiaryMoviePage() {
   const router = useRouter();
@@ -21,6 +21,22 @@ export default function DiaryMoviePage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
+
+  const persistRemoteVideo = async (videoUrl: string) => {
+    const response = await fetch("/api/diary/video/persist", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ videoUrl }),
+    });
+    const data = await response.json().catch(() => null) as {
+      videoUrl?: string;
+      error?: string;
+    } | null;
+    if (!response.ok || !data?.videoUrl) {
+      throw new Error(data?.error || "動画を保存できませんでした。");
+    }
+    return data.videoUrl;
+  };
 
   useEffect(() => () => {
     previewUrlsRef.current.forEach(URL.revokeObjectURL);
@@ -59,9 +75,10 @@ export default function DiaryMoviePage() {
       if (!response.ok || !data?.videoUrl) {
         throw new Error(data?.error || "動画生成に失敗しました。");
       }
-      setGenerated({
-        videoUrl: new URL(data.videoUrl, VIDEO_SERVICE_URL).toString(),
-      });
+      // Render側の /output は一時ファイルなので、生成直後にWoolinkへ退避する。
+      const remoteVideoUrl = new URL(data.videoUrl, VIDEO_SERVICE_URL).toString();
+      const videoUrl = await persistRemoteVideo(remoteVideoUrl);
+      setGenerated({ videoUrl, persisted: true });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "動画生成に失敗しました。");
     } finally {
@@ -71,19 +88,8 @@ export default function DiaryMoviePage() {
 
   const persistVideo = async () => {
     if (!generated) throw new Error("生成した動画がありません。");
-    const response = await fetch("/api/diary/video/persist", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ videoUrl: generated.videoUrl }),
-    });
-    const data = await response.json().catch(() => null) as {
-      videoUrl?: string;
-      error?: string;
-    } | null;
-    if (!response.ok || !data?.videoUrl) {
-      throw new Error(data?.error || "動画を保存できませんでした。");
-    }
-    return data.videoUrl;
+    if (generated.persisted) return generated.videoUrl;
+    return persistRemoteVideo(generated.videoUrl);
   };
 
   const proceedToExchange = async () => {
@@ -153,7 +159,13 @@ export default function DiaryMoviePage() {
 
         {generated && (
           <section className="movie-result">
-            <video src={generated.videoUrl} controls playsInline preload="metadata" />
+            <video
+              src={generated.videoUrl}
+              controls
+              playsInline
+              preload="metadata"
+              onError={() => setError("保存した動画を読み込めませんでした。もう一度生成してください。")}
+            />
             <h2>動画が完成しました！</h2>
             <p>この動画を交換するか、自分だけの思い出として残せます。</p>
             <button className="movie-primary" type="button" onClick={() => void proceedToExchange()} disabled={isSaving}>

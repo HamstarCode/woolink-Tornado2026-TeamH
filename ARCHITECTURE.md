@@ -1,4 +1,4 @@
-# Tonight — Architecture
+# Woolink — Architecture
 
 ## 1. Concept in one line
 
@@ -9,8 +9,7 @@ ever shown to anyone until *both* sides want to talk *and* their free time overl
 
 | Route | Spec screen | Notes |
 |---|---|---|
-| `/` | ① Landing / Onboarding | Public. Value prop + CTA. |
-| `/login` | (auth) | Email magic link **or** one-tap demo login as Haru/Yuki/Mei/Ren/Sora/Takumi. |
+| `/` | ① Landing / Login | Public. Value prop + Google OAuth login. First-time users continue to `/onboarding`. |
 | `/home` | ②Home + ③Friend Selection + ④Availability + ⑤Waiting + ⑥Match | One stateful wizard, in this **fixed order**: Mode → Availability → (Friend Selection, only if mode = "selected") → Waiting/Match. Kept as a single page (instead of 4 routes) so the "3 taps" goal is achievable and so the match card can appear in place via Realtime without a page transition. Internally these are still 4 distinct step components (`ModeStep`, `AvailabilityStep`, `FriendsStep`, `StatusStep`) mapped 1:1 to the spec's screens. |
 | `/invite` | ⑦ Invite | Create a share link for tonight. |
 | `/i/[token]` | ⑧ Guest Response | Public, **no login required**. |
@@ -22,7 +21,7 @@ must precede Intent Target Selection.
 ## 3. Data model (Supabase Postgres)
 
 ```
-profiles            id (=auth.users.id), name, avatar_url, is_demo, created_at
+profiles            id (=auth.users.id), nickname, avatar_url, public_user_id, created_at
 friendships         id, user_id, friend_id, created_at        -- symmetric, auto-mutual on seed/invite-accept
 daily_intents       id, user_id, date, mode ('anyone'|'selected'), created_at, updated_at   -- unique(user_id,date)
 intent_targets      id, intent_id -> daily_intents, target_user_id
@@ -82,10 +81,9 @@ For user `U` saving today's intent:
 
 ## 7. Auth
 
-Supabase Auth, email magic link for real usage. For the hackathon demo, seeded
-demo users (Haru/Yuki/Mei/Ren/Sora/Takumi) are real `auth.users` rows with a
-shared demo password so `/login` can offer one-tap sign-in as any of them —
-this is what makes the 3-device demo scenario (§17) actually runnable.
+Supabase Auth の Google OAuth のみを画面から利用する。初回ログイン時は
+`handle_new_user()` がプロフィールの土台と公開IDを作り、オンボーディングで
+ニックネームと性格タイプを登録する。
 
 ## 8. Realtime
 
@@ -121,7 +119,4 @@ scoped by RLS to rows the logged-in user is a party to.
 - **既知の制約（MVP）**: TURN 未設定だと対称NAT 環境で P2P が張れないことが
   ある。長時間通話でのアクセストークン失効時の `realtime.setAuth()` 再実行、
   期限付き TURN クレデンシャル（HMAC）は未対応。`getUserMedia` は
-  secure context（https もしくは localhost）が必要。通話ボタンは相手が
-  `is_demo` でも表示する（デモログインした本物のユーザーとは実際に繋がる；
-  自動生成のサンプル相手を呼んだ場合は誰も出ずに呼び出しタイムアウトする
-  だけ）。
+  secure context（https もしくは localhost）が必要。

@@ -22,19 +22,25 @@ export default function OnboardingPage() {
         router.replace("/");
         return;
       }
-      // tonight は handle_new_user トリガーで profiles を自動作成するので、
+      // handle_new_user トリガーで profiles を自動作成するので、
       // ここでは診断済みかどうかだけ見て分岐する。
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("name, personality_type")
+        .select("nickname, personality_type")
         .eq("id", user.id)
         .maybeSingle();
+
+      if (profileError) {
+        setError("プロフィールの確認に失敗しました。もう一度お試しください。");
+        setChecking(false);
+        return;
+      }
 
       if (profile?.personality_type) {
         router.replace("/home");
         return;
       }
-      setNickname(profile?.name ?? "");
+      setNickname(profile?.nickname ?? user.user_metadata?.name ?? "");
       setChecking(false);
     })();
   }, [router, supabase]);
@@ -53,7 +59,7 @@ export default function OnboardingPage() {
 
     const { error: updateError } = await supabase
       .from("profiles")
-      .update({ name: nextName })
+      .update({ nickname: nextName })
       .eq("id", authData.user.id);
     if (updateError) {
       setError("ニックネームを保存できませんでした。");

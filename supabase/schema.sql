@@ -1,4 +1,4 @@
--- Tonight — schema
+-- Woolink — schema
 -- Run this in the Supabase SQL editor (or `supabase db execute -f supabase/schema.sql`)
 -- against a fresh project. Safe to re-run (uses IF NOT EXISTS / CREATE OR REPLACE).
 
@@ -7,49 +7,22 @@
 -- ─────────────────────────────────────────────────────────────────────────
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
-  name text not null,
+  nickname text not null,
   avatar_url text,
-  is_demo boolean not null default false,
   created_at timestamptz not null default now()
 );
 
--- auto-create a profile row whenever a new auth user is created. Also:
--- flags @tonight.demo accounts as is_demo, and auto-friends every *real*
--- (non-demo) signup with the four "always active" demo companions (Haru/
--- Yuki/Mei/Ren) so a brand-new user can see a real match immediately after
--- registering only their own info — no need to also control a second
--- account. See ensureDemoCompanionsActiveFor() in src/lib/demo-companions.ts
--- for the other half (keeping those companions' daily intent fresh).
+-- Auto-create a profile row whenever a Google-authenticated user is created.
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-  insert into public.profiles (id, name, avatar_url, is_demo)
+  insert into public.profiles (id, nickname, avatar_url)
   values (
     new.id,
     coalesce(new.raw_user_meta_data->>'name', split_part(new.email, '@', 1)),
-    new.raw_user_meta_data->>'avatar_url',
-    new.email like '%@tonight.demo'
+    new.raw_user_meta_data->>'avatar_url'
   )
   on conflict (id) do nothing;
-
-  -- Deliberately reads public.profiles (not auth.users) to find the demo
-  -- companions: querying auth.users from inside this trigger (i.e. mid
-  -- INSERT into auth.users, invoked by GoTrue) causes "Database error
-  -- saving new user" on every signup — auth.users isn't safely readable
-  -- from here even though the SECURITY DEFINER function can read it fine
-  -- from a plain SQL Editor session. profiles has everything needed
-  -- (is_demo + name) and is always safe to query.
-  if new.email not like '%@tonight.demo' then
-    insert into public.friendships (user_id, friend_id)
-    select new.id, p.id from public.profiles p
-    where p.is_demo = true and p.name in ('Haru', 'Yuki', 'Mei', 'Ren')
-    on conflict (user_id, friend_id) do nothing;
-
-    insert into public.friendships (user_id, friend_id)
-    select p.id, new.id from public.profiles p
-    where p.is_demo = true and p.name in ('Haru', 'Yuki', 'Mei', 'Ren')
-    on conflict (user_id, friend_id) do nothing;
-  end if;
 
   return new;
 end;
@@ -301,35 +274,4 @@ begin
   ) then
     alter publication supabase_realtime add table public.guest_responses;
   end if;
-end $$;
-
--- ─────────────────────────────────────────────────────────────────────────
--- One-time backfill for the demo-companion changes above, so re-running
--- this file against a project that already has users retroactively (a)
--- flags existing @tonight.demo profiles as is_demo, and (b) auto-friends
--- existing real users with the demo companions too — not just future
--- signups going through the trigger. Both are idempotent (safe to re-run).
--- Run from a plain SQL Editor session (not a trigger), so — unlike inside
--- handle_new_user() — reading auth.users here is fine.
--- ─────────────────────────────────────────────────────────────────────────
-update public.profiles p
-set is_demo = true
-from auth.users u
-where u.id = p.id and u.email like '%@tonight.demo' and p.is_demo = false;
-
-do $$
-declare
-  real_user record;
-begin
-  for real_user in select id from auth.users where email not like '%@tonight.demo' loop
-    insert into public.friendships (user_id, friend_id)
-    select real_user.id, p.id from public.profiles p
-    where p.is_demo = true and p.name in ('Haru', 'Yuki', 'Mei', 'Ren')
-    on conflict (user_id, friend_id) do nothing;
-
-    insert into public.friendships (user_id, friend_id)
-    select p.id, real_user.id from public.profiles p
-    where p.is_demo = true and p.name in ('Haru', 'Yuki', 'Mei', 'Ren')
-    on conflict (user_id, friend_id) do nothing;
-  end loop;
 end $$;

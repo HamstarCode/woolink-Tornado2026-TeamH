@@ -164,10 +164,14 @@ export async function getMatchesForUser(
   const friendIds = matches.map((m) => (m.user_a === userId ? m.user_b : m.user_a));
   const { data: profiles } = await admin
     .from("profiles")
-    .select("id, name, avatar_url, is_demo")
+    .select("id, nickname, avatar_url")
     .in("id", friendIds);
 
-  const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
+  const profileMap = new Map((profiles ?? []).map((p) => [p.id, {
+    id: p.id,
+    name: p.nickname,
+    avatar_url: p.avatar_url,
+  }]));
 
   const result = matches.map((m) => {
     const friendId = m.user_a === userId ? m.user_b : m.user_a;
@@ -175,7 +179,6 @@ export async function getMatchesForUser(
       id: friendId,
       name: "友達",
       avatar_url: null,
-      is_demo: false,
     };
     return { ...m, friend, preferred: preferredIds.has(friendId) } as MatchWithFriend;
   });

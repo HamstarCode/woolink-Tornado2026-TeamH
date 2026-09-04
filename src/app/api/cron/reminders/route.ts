@@ -26,7 +26,7 @@ export async function POST(request: Request) {
   if (!resendKey) {
     return NextResponse.json({ error: "RESEND_API_KEY is not configured" }, { status: 500 });
   }
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://tonight-mvp.netlify.app";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
   const admin = createAdminClient();
   const date = tonightDateJST();
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
   const userIds = intents.map((i) => i.user_id as string);
 
   const [{ data: profiles }, { data: avails }, { data: alreadySent }] = await Promise.all([
-    admin.from("profiles").select("id, name, is_demo").in("id", userIds),
+    admin.from("profiles").select("id, nickname").in("id", userIds),
     admin.from("availabilities").select("user_id, slots").eq("date", date).in("user_id", userIds),
     admin.from("sent_reminders").select("user_id").eq("date", date).in("user_id", userIds),
   ]);
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
   for (const userId of userIds) {
     if (alreadySentIds.has(userId)) continue;
     const profile = profiles?.find((p) => p.id === userId);
-    if (!profile || profile.is_demo) continue; // never email demo/companion accounts
+    if (!profile) continue;
 
     const { data: userRes } = await admin.auth.admin.getUserById(userId);
     const email = userRes?.user?.email;
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
     const run = longestContiguousRun(slots);
     const rangeText = run ? formatRange(run.start, run.end) : null;
 
-    const ok = await sendReminderEmail(resendKey, email, profile.name, siteUrl, rangeText);
+    const ok = await sendReminderEmail(resendKey, email, profile.nickname, siteUrl, rangeText);
     if (ok) {
       await admin.from("sent_reminders").insert({ user_id: userId, date });
       sent += 1;
@@ -88,14 +88,14 @@ async function sendReminderEmail(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "Tonight <onboarding@resend.dev>",
+        from: "Woolink <onboarding@resend.dev>",
         to,
         subject: "🌙 今夜、話したいって登録してましたね",
         html:
           `<p>${name}さん、こんばんは。</p>` +
           `<p>以前、今日話せる時間として登録していました。マッチを確認してみましょう。</p>` +
           rangeLine +
-          `<p><a href="${siteUrl}/home">Tonightを開く</a></p>`,
+          `<p><a href="${siteUrl}/home">Woolinkを開く</a></p>`,
       }),
     });
     return res.ok;

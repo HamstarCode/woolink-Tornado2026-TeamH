@@ -12,9 +12,8 @@ export const SLOT_START_HOUR = 11;
 
 export interface Profile {
   id: string;
-  name: string;
+  nickname: string;
   avatar_url: string | null;
-  is_demo: boolean;
   personality_type: string | null;
   /** 交換日記で、友達登録なしに特定の相手を指定するための6桁公開ID。 */
   public_user_id: string | null;
@@ -63,7 +62,7 @@ export interface Match {
 }
 
 export interface MatchWithFriend extends Match {
-  friend: Pick<Profile, "id" | "name" | "avatar_url" | "is_demo">;
+  friend: { id: string; name: string; avatar_url: string | null };
   /** True if the caller listed this friend in their own intent_targets for
    * this date — meaningful in BOTH modes: a hard restriction in 'selected'
    * mode, an optional priority pick in 'anyone' mode. Used to sort/badge

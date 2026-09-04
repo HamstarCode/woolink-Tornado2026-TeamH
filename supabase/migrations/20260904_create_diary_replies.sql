@@ -58,7 +58,7 @@ begin
     r.id,
     r.ended_at,
     p.id,
-    p.name::text,
+    p.nickname::text,
     p.public_user_id::text,
     p.personality_type::text,
     s.diary::text,
