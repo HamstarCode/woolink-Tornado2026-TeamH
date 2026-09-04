@@ -9,7 +9,7 @@ import "./movie.css";
 const VIDEO_SERVICE_URL = process.env.NEXT_PUBLIC_VIDEO_SERVICE_URL
   ?? "https://woolink-video-service.onrender.com";
 
-type GeneratedVideo = { videoUrl: string; persisted: boolean };
+type GeneratedVideo = { videoUrl: string };
 
 export default function DiaryMoviePage() {
   const router = useRouter();
@@ -21,22 +21,6 @@ export default function DiaryMoviePage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
-
-  const persistRemoteVideo = async (videoUrl: string) => {
-    const response = await fetch("/api/diary/video/persist", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ videoUrl }),
-    });
-    const data = await response.json().catch(() => null) as {
-      videoUrl?: string;
-      error?: string;
-    } | null;
-    if (!response.ok || !data?.videoUrl) {
-      throw new Error(data?.error || "動画を保存できませんでした。");
-    }
-    return data.videoUrl;
-  };
 
   useEffect(() => () => {
     previewUrlsRef.current.forEach(URL.revokeObjectURL);
@@ -75,10 +59,9 @@ export default function DiaryMoviePage() {
       if (!response.ok || !data?.videoUrl) {
         throw new Error(data?.error || "動画生成に失敗しました。");
       }
-      // Render側の /output は一時ファイルなので、生成直後にWoolinkへ退避する。
+      // ハッカソン中は動画本体をWoolinkへ再アップロードせず、RenderのURLをそのまま交換する。
       const remoteVideoUrl = new URL(data.videoUrl, VIDEO_SERVICE_URL).toString();
-      const videoUrl = await persistRemoteVideo(remoteVideoUrl);
-      setGenerated({ videoUrl, persisted: true });
+      setGenerated({ videoUrl: remoteVideoUrl });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "動画生成に失敗しました。");
     } finally {
@@ -88,8 +71,7 @@ export default function DiaryMoviePage() {
 
   const persistVideo = async () => {
     if (!generated) throw new Error("生成した動画がありません。");
-    if (generated.persisted) return generated.videoUrl;
-    return persistRemoteVideo(generated.videoUrl);
+    return generated.videoUrl;
   };
 
   const proceedToExchange = async () => {
