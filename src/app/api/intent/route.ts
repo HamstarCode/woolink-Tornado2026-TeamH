@@ -71,8 +71,25 @@ export async function POST(request: Request) {
   }
 
   const body = (await request.json()) as IntentBody;
-  if (!body.date || (body.mode !== "anyone" && body.mode !== "selected")) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(body.date ?? "") || (body.mode !== "anyone" && body.mode !== "selected")) {
     return NextResponse.json({ error: "invalid body" }, { status: 400 });
+  }
+
+  const { data: friendshipRows, error: friendshipError } = await supabase
+    .from("friendships")
+    .select("friend_id")
+    .eq("user_id", user.id);
+  if (friendshipError) {
+    return NextResponse.json({ error: friendshipError.message }, { status: 500 });
+  }
+  const friendIds = new Set((friendshipRows ?? []).map((row) => row.friend_id as string));
+  if (friendIds.size === 0) {
+    return NextResponse.json({ error: "日調を使うにはフレンドが必要です。" }, { status: 400 });
+  }
+  if (body.mode === "selected" && (
+    body.targetIds.length === 0 || body.targetIds.some((targetId) => !friendIds.has(targetId))
+  )) {
+    return NextResponse.json({ error: "通話相手には承認済みのフレンドを選んでください。" }, { status: 400 });
   }
 
   // Own-row writes go through the RLS-scoped client — the policies already

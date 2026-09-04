@@ -9,7 +9,7 @@ const supabase = createClient();
 
 type MyProfile = {
   id: string;
-  name: string;
+  nickname: string;
   public_user_id: string;
   personality_type: string | null;
 };
@@ -28,9 +28,7 @@ const PERSONALITY_NAMES: Record<string, string> = {
 
 export default function MyProfilePage() {
   const [profile, setProfile] = useState<MyProfile | null>(null);
-  const [nickname, setNickname] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
 
@@ -47,19 +45,17 @@ export default function MyProfilePage() {
         return;
       }
 
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, name, public_user_id, personality_type")
-        .eq("id", authData.user.id)
-        .maybeSingle<MyProfile>();
+      const { data, error } = await supabase.rpc("get_my_profile");
       if (!active) return;
 
-      if (error || !data) {
+      const myProfile = (data?.[0] ?? null) as MyProfile | null;
+
+      if (error || !myProfile) {
+        if (error) console.error("プロフィール取得エラー:", error.message);
         setMessage("プロフィールを読み込めませんでした。");
         setIsError(true);
       } else {
-        setProfile(data);
-        setNickname(data.name);
+        setProfile(myProfile);
       }
       setIsLoading(false);
     };
@@ -67,35 +63,6 @@ export default function MyProfilePage() {
     void load();
     return () => { active = false; };
   }, []);
-
-  const saveProfile = async () => {
-    if (!profile) return;
-    const nextNickname = nickname.trim();
-    if (!nextNickname || nextNickname.length > 30) {
-      setMessage("ニックネームは1〜30文字で入力してください。");
-      setIsError(true);
-      return;
-    }
-
-    setIsSaving(true);
-    setMessage("");
-    setIsError(false);
-    const { error } = await supabase
-      .from("profiles")
-      .update({ name: nextNickname })
-      .eq("id", profile.id);
-
-    if (error) {
-      console.error("プロフィール保存エラー:", error.message);
-      setMessage("プロフィールを保存できませんでした。");
-      setIsError(true);
-    } else {
-      setProfile({ ...profile, name: nextNickname });
-      setNickname(nextNickname);
-      setMessage("プロフィールを保存しました。");
-    }
-    setIsSaving(false);
-  };
 
   if (isLoading) {
     return <main className="profile-page"><div className="profile-loading">ロード中...</div></main>;
@@ -107,7 +74,7 @@ export default function MyProfilePage() {
         <h1>プロフィール</h1>
         {profile ? (
           <section className="profile-card">
-            <div className="profile-avatar" aria-hidden="true">{profile.name.slice(0, 1)}</div>
+            <div className="profile-avatar" aria-hidden="true">{profile.nickname.slice(0, 1)}</div>
 
             <div className="profile-field">
               <label htmlFor="profile-public-id">公開ID</label>
@@ -117,8 +84,8 @@ export default function MyProfilePage() {
 
             <div className="profile-field">
               <label htmlFor="profile-nickname">ニックネーム</label>
-              <input id="profile-nickname" value={nickname} maxLength={30}
-                onChange={(event) => setNickname(event.target.value)} />
+              <input id="profile-nickname" value={profile.nickname} readOnly />
+              <p>ニックネームは変更できません</p>
             </div>
 
             <div className="profile-personality">
@@ -130,11 +97,6 @@ export default function MyProfilePage() {
               </div>
               <Link href="/personality?return=/profile">性格診断を受け直す</Link>
             </div>
-
-            <button className="profile-save" type="button" onClick={saveProfile}
-              disabled={isSaving || nickname.trim() === profile.name}>
-              {isSaving ? "保存中..." : "保存"}
-            </button>
 
             {message && <p className={`profile-message${isError ? " is-error" : ""}`}
               role="status">{message}</p>}

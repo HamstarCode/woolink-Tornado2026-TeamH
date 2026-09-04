@@ -76,6 +76,7 @@ export default function WoolinkHeader() {
           {[
             { href: "/home", label: "ホーム" },
             { href: "/diary", label: "交換日記" },
+            { href: "/friends", label: "フレンド" },
             { href: "/profile", label: "プロフィール" },
             { href: "/notifications", label: "お知らせ" },
             { href: "/settings", label: "設定" },

@@ -1,7 +1,6 @@
 import { SLOT_COUNT, SLOT_START_HOUR, type SlotIndex } from "@/types/db";
 
-/** Format a slot index as "HH:MM", rolling past 24:00 into 25:xx / 26:00 style
- * display (common in Japanese late-night listings) rather than wrapping to 00:xx. */
+/** Format a slot index as "HH:MM". */
 export function formatSlotTime(slot: SlotIndex): string {
   const totalMinutes = SLOT_START_HOUR * 60 + slot * 30;
   const hour = Math.floor(totalMinutes / 60);

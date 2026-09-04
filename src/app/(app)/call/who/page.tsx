@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { buildCallQuery } from "../callQuery";
@@ -10,6 +10,21 @@ function CallWhoContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const date = searchParams.get("date");
+  const [friendCount, setFriendCount] = useState(0);
+  const [checkingFriends, setCheckingFriends] = useState(true);
+
+  useEffect(() => {
+    void (async () => {
+      const response = await fetch("/api/friends");
+      if (response.ok) {
+        const body = await response.json();
+        setFriendCount((body.friends ?? []).length);
+      }
+      setCheckingFriends(false);
+    })();
+  }, []);
+
+  const cannotChoose = checkingFriends || friendCount === 0;
 
   return (
     <main className="who-page">
@@ -19,8 +34,10 @@ function CallWhoContent() {
 
           <section className="who-actions">
             <Link
-              className="who-tile"
-              href={`/call/time${buildCallQuery({ date, who: "stranger" })}`}
+              className={`who-tile${cannotChoose ? " is-disabled" : ""}`}
+              href={cannotChoose ? "#" : `/call/time${buildCallQuery({ date, who: "stranger" })}`}
+              aria-disabled={cannotChoose}
+              onClick={(event) => { if (cannotChoose) event.preventDefault(); }}
             >
               <span
                 className="who-tile-illustration"
@@ -46,8 +63,10 @@ function CallWhoContent() {
             </Link>
 
             <Link
-              className="who-tile"
-              href={`/call/friends${buildCallQuery({ date, who: "friend" })}`}
+              className={`who-tile${cannotChoose ? " is-disabled" : ""}`}
+              href={cannotChoose ? "#" : `/call/friends${buildCallQuery({ date, who: "friend" })}`}
+              aria-disabled={cannotChoose}
+              onClick={(event) => { if (cannotChoose) event.preventDefault(); }}
             >
               <span
                 className="who-tile-illustration"
@@ -85,6 +104,12 @@ function CallWhoContent() {
               <span className="who-tile-label">友達と</span>
             </Link>
           </section>
+
+          {!checkingFriends && friendCount === 0 && (
+            <p className="who-no-friends">
+              日調を使うにはフレンドが必要です。<Link href="/diary">交換日記をはじめる</Link>
+            </p>
+          )}
 
           <div className="who-back-btn-wrap">
             <button

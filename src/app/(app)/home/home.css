@@ -58,25 +58,29 @@ body {
 }
 
 .friend-card {
-  background: rgba(20, 28, 62, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  display: block;
+  background: linear-gradient(135deg, rgba(91,105,224,.92), rgba(64,79,190,.92));
+  border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 16px;
   padding: 16px 18px;
   text-align: center;
+  text-decoration: none;
+  transition: background .2s ease, transform .2s ease;
 }
+.friend-card:hover,.friend-card:focus-visible { filter: brightness(1.08); transform: translateY(-2px); }
 
 .friend-card h1 {
   margin: 0 0 8px;
   font-size: 14px;
   font-weight: 700;
-  color: #cfd3f0;
+  color: #fff;
 }
 
 .friend-card p {
   margin: 0;
   font-size: 12px;
   line-height: 1.7;
-  color: #b7bce0;
+  color: #e6e9ff;
 }
 
 /* ---------- Actions ---------- */

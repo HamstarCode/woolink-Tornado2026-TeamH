@@ -71,16 +71,16 @@ export default function HomePage() {
     <main className="woolink-home">
       <div className="phone">
         <section className="content">
-          <section className="friend-card">
+          <Link className="friend-card" href="/friends">
             <h1>友達一覧</h1>
             <p>
               {friendCount === null
-                ? "読み込み中…"
+                ? "フレンド情報を確認中…"
                 : friendCount === 0
-                ? "まだ友達がいません。両思い通話の画面からメールアドレスで追加できます。"
+                ? "まだフレンドがいません。交換日記で出会った相手に申請できます。"
                 : `${friendCount}人の友達とつながっています。`}
             </p>
-          </section>
+          </Link>
 
           {matches.length > 0 && (
             <section style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 12 }}>

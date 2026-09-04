@@ -35,7 +35,7 @@ function CallCompleteContent() {
         .map((s) => Number(s))
         .filter((n) => Number.isInteger(n) && n >= 0);
 
-      if (!date || slots.length === 0) {
+      if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date) || slots.length === 0) {
         setState({ status: "error", message: "予定の内容が読み取れませんでした。" });
         return;
       }
@@ -60,7 +60,7 @@ function CallCompleteContent() {
     })();
   }, [date, who, friend, slotsParam]);
 
-  const dateLabel = date ? formatDateJa(date) : "";
+  const dateLabel = date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? formatDateJa(date) : "日付不明";
   const timeLabel = `${start ?? "00:00"}〜${end ?? "00:00"}`;
 
   return (
@@ -74,7 +74,11 @@ function CallCompleteContent() {
               {timeLabel}
             </p>
             <p className="complete-caption">
-              {state.status === "saving" ? "を登録中…" : "に設定しました"}
+              {state.status === "saving"
+                ? "を登録中…"
+                : state.status === "done"
+                  ? "に設定しました"
+                  : "は登録されませんでした"}
             </p>
           </div>
 

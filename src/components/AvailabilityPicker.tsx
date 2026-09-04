@@ -10,8 +10,8 @@ interface AvailabilityPickerProps {
 }
 
 /**
- * A When2meet-style vertical slot picker for the 20:00 -> 26:00 (02:00)
- * night window, 30-minute steps. Tap a single slot, or press-and-drag
+ * A When2meet-style vertical slot picker for the 11:00 -> 17:00
+ * window, 30-minute steps. Tap a single slot, or press-and-drag
  * across several to select (or deselect, if the drag starts on an already
  * selected slot) a range in one gesture. Built for touch first: the whole
  * gesture runs off pointer capture + elementFromPoint so a finger dragging

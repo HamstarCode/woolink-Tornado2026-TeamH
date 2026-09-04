@@ -6,9 +6,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { buildCallQuery } from "../callQuery";
 import "./time.css";
 
-const START_HOUR = 20;
-const END_HOUR = 26; // 26:00 = 翌 2:00 として表示
-const SLOT_COUNT = (END_HOUR - START_HOUR) * 2; // = 12 (tonight の SlotIndex と一致: 0 = 20:00, 30分刻み)
+const START_HOUR = 11;
+const END_HOUR = 17;
+const SLOT_COUNT = (END_HOUR - START_HOUR) * 2; // = 12 (SlotIndex 0 = 11:00、30分刻み)
 
 function formatSlotTime(index: number) {
   const hour = START_HOUR + Math.floor(index / 2);

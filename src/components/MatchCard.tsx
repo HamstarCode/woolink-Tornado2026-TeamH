@@ -26,7 +26,7 @@ export default function MatchCard({ match }: { match: MatchWithFriend }) {
     [match.date, match.overlap_start]
   );
   const endsAt = useMemo(
-    () => slotDateTime(match.date, match.overlap_end).getTime(),
+    () => slotDateTime(match.date, match.overlap_end + 1).getTime(),
     [match.date, match.overlap_end]
   );
 
@@ -47,6 +47,7 @@ export default function MatchCard({ match }: { match: MatchWithFriend }) {
 
   const isUpcoming = nowMs < startsAt;
   const isActive = nowMs >= startsAt && nowMs < endsAt;
+  const isPast = nowMs >= endsAt;
 
   // OS 通知（任意）。ユーザーが「時間になったら通知」を押したときだけ許可を求める。
   const [notifyArmed, setNotifyArmed] = useState(false);
@@ -79,7 +80,13 @@ export default function MatchCard({ match }: { match: MatchWithFriend }) {
   }, [notifyArmed, startsAt, match.id, match.friend.name]);
 
   const callButtonLabel =
-    call.phase !== "idle" ? "通話中…" : isActive ? "📞 いま通話する" : "📞 通話する";
+    call.phase !== "idle"
+      ? "通話中…"
+      : isActive
+        ? "📞 いま通話する"
+        : isUpcoming
+          ? "予約時間前"
+          : "通話時間終了";
 
   return (
     <div
@@ -113,6 +120,9 @@ export default function MatchCard({ match }: { match: MatchWithFriend }) {
           {range} に話す予定
         </p>
       )}
+      {isPast && (
+        <p className="text-xs text-moon/50 text-center -mt-1">この通話時間は終了しました</p>
+      )}
 
       {match.friend.is_demo && (
         <p className="text-xs text-moon/40 text-center -mt-2">
@@ -122,7 +132,7 @@ export default function MatchCard({ match }: { match: MatchWithFriend }) {
 
       <button
         onClick={call.start}
-        disabled={call.phase !== "idle"}
+        disabled={call.phase !== "idle" || !isActive}
         className={[
           "w-full rounded-xl text-sm font-medium py-3 disabled:opacity-40 disabled:cursor-not-allowed",
           isActive ? "bg-accent text-night" : "bg-accent/90 text-night",

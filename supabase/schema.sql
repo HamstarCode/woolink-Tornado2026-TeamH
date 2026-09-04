@@ -73,6 +73,21 @@ create table if not exists public.friendships (
   check (user_id <> friend_id)
 );
 
+-- Friend requests become symmetric friendships only after the receiver accepts.
+create table if not exists public.friend_requests (
+  id uuid primary key default gen_random_uuid(),
+  sender_id uuid not null references public.profiles(id) on delete cascade,
+  receiver_id uuid not null references public.profiles(id) on delete cascade,
+  status text not null default 'pending' check (status in ('pending', 'accepted', 'declined')),
+  created_at timestamptz not null default now(),
+  responded_at timestamptz,
+  check (sender_id <> receiver_id)
+);
+
+create unique index if not exists friend_requests_one_pending_pair
+  on public.friend_requests (least(sender_id, receiver_id), greatest(sender_id, receiver_id))
+  where status = 'pending';
+
 -- ─────────────────────────────────────────────────────────────────────────
 -- daily_intents: one per user per date. mode is 'anyone' or 'selected'.
 -- ─────────────────────────────────────────────────────────────────────────
@@ -96,8 +111,8 @@ create table if not exists public.intent_targets (
 
 -- ─────────────────────────────────────────────────────────────────────────
 -- availabilities: ONE set per user per day (not per-friend). `slots` holds
--- half-hour slot indices, where 0 = 20:00, 1 = 20:30, ... 11 = 25:30 (01:30).
--- Window is 20:00 -> 26:00 (02:00) => 12 slots, indices 0..11.
+-- half-hour slot indices, where 0 = 11:00, 1 = 11:30, ... 11 = 16:30.
+-- Window is 11:00 -> 17:00 => 12 slots, indices 0..11.
 -- ─────────────────────────────────────────────────────────────────────────
 create table if not exists public.availabilities (
   id uuid primary key default gen_random_uuid(),
@@ -167,6 +182,7 @@ alter table public.sent_reminders enable row level security;
 -- ─────────────────────────────────────────────────────────────────────────
 alter table public.profiles enable row level security;
 alter table public.friendships enable row level security;
+alter table public.friend_requests enable row level security;
 alter table public.daily_intents enable row level security;
 alter table public.intent_targets enable row level security;
 alter table public.availabilities enable row level security;
@@ -201,6 +217,12 @@ create policy "insert own friendships"
   on public.friendships for insert
   to authenticated
   with check (auth.uid() = user_id);
+
+drop policy if exists "read involved friend requests" on public.friend_requests;
+create policy "read involved friend requests"
+  on public.friend_requests for select
+  to authenticated
+  using (auth.uid() = sender_id or auth.uid() = receiver_id);
 
 -- daily_intents: STRICTLY owner-only. This is the core privacy guarantee —
 -- nobody can ever read another user's intent directly.

@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { buildCallQuery } from "../callQuery";
 import "./friends.css";
 
-type Friend = { id: string; name: string; avatar_url: string | null; is_demo?: boolean };
+type Friend = { id: string; name: string; avatar_url: string | null };
 
 function PersonIcon() {
   return (
@@ -30,9 +30,6 @@ function CallFriendsContent() {
 
   const [friends, setFriends] = useState<Friend[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [email, setEmail] = useState("");
-  const [adding, setAdding] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -44,29 +41,6 @@ function CallFriendsContent() {
       }
     })();
   }, []);
-
-  async function addFriend() {
-    if (!email.trim() || adding) return;
-    setAdding(true);
-    setError(null);
-    const res = await fetch("/api/friends", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: email.trim() }),
-    });
-    setAdding(false);
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      setError(body.error ?? "追加できませんでした");
-      return;
-    }
-    const { friend } = await res.json();
-    if (friend) {
-      setFriends((prev) => (prev.some((f) => f.id === friend.id) ? prev : [...prev, friend]));
-      setSelectedId(friend.id);
-    }
-    setEmail("");
-  }
 
   const selectedFriend = friends.find((f) => f.id === selectedId) ?? null;
 
@@ -94,7 +68,7 @@ function CallFriendsContent() {
             <div className="friends-contact-list" role="radiogroup" aria-label="話したい相手">
               {friends.length === 0 && (
                 <p style={{ fontSize: 13, color: "rgba(238,240,251,0.55)", padding: "8px 2px" }}>
-                  まだ友達がいません。下のメールアドレス欄から追加できます。
+                  まだフレンドがいません。まずは交換日記から新しい出会いを始めてみましょう。
                 </p>
               )}
 
@@ -116,42 +90,16 @@ function CallFriendsContent() {
 
                   <span className="friends-contact-main">
                     <span className="friends-contact-name">{friend.name}</span>
-                    {friend.is_demo && <span className="friends-contact-tag">🌙 サンプル</span>}
                   </span>
 
                   <span className="friends-radio-dot" aria-hidden="true" />
                 </button>
               ))}
 
-              <div className="friends-invite-box">
-                <label className="friends-invite-label" htmlFor="inviteEmail">
-                  友達のメールアドレスで追加
-                </label>
-
-                <div className="friends-invite-row">
-                  <input
-                    type="email"
-                    id="inviteEmail"
-                    className="friends-invite-input"
-                    placeholder="friend@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                  <button
-                    type="button"
-                    className="friends-invite-btn"
-                    onClick={addFriend}
-                    disabled={adding}
-                  >
-                    {adding ? "…" : "追加"}
-                  </button>
-                </div>
-                {error && <p style={{ fontSize: 12, color: "#ffb4b4", margin: "6px 0 0" }}>{error}</p>}
-              </div>
             </div>
 
-            <Link href="/invite" className="friends-invite-link">
-              友達がいない？招待リンクを作る
+            <Link href="/diary" className="friends-invite-link">
+              交換日記をはじめる
             </Link>
           </div>
 

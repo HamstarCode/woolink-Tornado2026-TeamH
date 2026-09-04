@@ -7,6 +7,7 @@ import { getDiaryRoom, type DiaryRoom } from "@/lib/diaryRoom";
 import "./profile-detail.css";
 
 type Bookmark = { publicUserId: string; nickname: string };
+type FriendStatus = "loading" | "none" | "outgoing" | "incoming" | "friends";
 
 export default function ProfileDetailPage() {
   const params = useParams<{ id: string }>();
@@ -14,6 +15,9 @@ export default function ProfileDetailPage() {
   const roomId = searchParams.get("room");
   const [profile, setProfile] = useState<DiaryRoom | null>(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [friendStatus, setFriendStatus] = useState<FriendStatus>("loading");
+  const [sendingRequest, setSendingRequest] = useState(false);
+  const [friendError, setFriendError] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -35,6 +39,15 @@ export default function ProfileDetailPage() {
         }
 
         setProfile(room);
+        const relationshipResponse = await fetch(
+          `/api/friend-requests?targetUserId=${encodeURIComponent(room.partner_user_id)}`,
+        );
+        if (relationshipResponse.ok) {
+          const relationship = (await relationshipResponse.json()) as { status: FriendStatus };
+          if (active) setFriendStatus(relationship.status);
+        } else if (active) {
+          setFriendStatus("none");
+        }
         const saved = localStorage.getItem("bookmarks");
         const bookmarks: Bookmark[] = saved ? JSON.parse(saved) : [];
         setIsBookmarked(
@@ -80,6 +93,32 @@ export default function ProfileDetailPage() {
     setIsBookmarked(!isBookmarked);
   };
 
+  const sendFriendRequest = async () => {
+    if (!profile || sendingRequest || friendStatus !== "none") return;
+    setSendingRequest(true);
+    setFriendError("");
+    const response = await fetch("/api/friend-requests", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ targetUserId: profile.partner_user_id }),
+    });
+    const result = (await response.json().catch(() => ({}))) as { status?: FriendStatus; error?: string };
+    setSendingRequest(false);
+    if (!response.ok) {
+      setFriendError(result.error ?? "フレンド申請を送れませんでした。");
+      return;
+    }
+    setFriendStatus(result.status ?? "outgoing");
+  };
+
+  const friendButtonLabel = {
+    loading: "確認中...",
+    none: sendingRequest ? "送信中..." : "フレンド申請する",
+    outgoing: "フレンド申請済み",
+    incoming: "申請が届いています",
+    friends: "フレンドです",
+  }[friendStatus];
+
   return (
     <main className="partner-profile-page">
       <div className="partner-profile-phone">
@@ -104,11 +143,20 @@ export default function ProfileDetailPage() {
               {isBookmarked ? "★ ブックマーク済み" : "☆ ブックマークする"}
             </button>
 
-            <button type="button" className="partner-friend-request" disabled>
-              フレンド申請（準備中）
+            <button
+              type="button"
+              className={`partner-friend-request${friendStatus === "none" ? " is-ready" : ""}`}
+              disabled={friendStatus !== "none" || sendingRequest}
+              onClick={sendFriendRequest}
+            >
+              {friendButtonLabel}
             </button>
+            {friendStatus === "incoming" && (
+              <Link className="partner-request-link" href="/notifications">お知らせで申請を確認する</Link>
+            )}
+            {friendError && <p className="partner-friend-error">{friendError}</p>}
             <p className="partner-profile-note">
-              フレンドになると、通話の相手として選べるようになる予定です。
+              承認されてフレンドになると、日調の通話相手として選べます。
             </p>
           </section>
         ) : (
