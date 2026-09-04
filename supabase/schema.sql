@@ -145,10 +145,12 @@ create table if not exists public.matches (
 
 grant select, insert, update, delete on table public.matches to service_role;
 
--- A phone appointment is exclusive: neither participant may have another
--- match on the same date. The advisory lock also closes the small race where
--- two intent requests are matched at the same time.
-create or replace function public.enforce_one_daily_call_match()
+-- Multiple calls are allowed per date, but one person's time ranges must not
+-- overlap. The advisory lock also closes races between simultaneous requests.
+drop trigger if exists matches_one_call_per_day on public.matches;
+drop function if exists public.enforce_one_daily_call_match();
+
+create or replace function public.enforce_non_overlapping_call_matches()
 returns trigger
 language plpgsql
 security definer
@@ -162,20 +164,21 @@ begin
     where m.date = new.date
       and m.id <> new.id
       and (
-        m.user_a in (new.user_a, new.user_b)
-        or m.user_b in (new.user_a, new.user_b)
+        m.user_a in (new.user_a, new.user_b) or m.user_b in (new.user_a, new.user_b)
       )
+      and int4range(m.overlap_start, m.overlap_end + 1, '[)')
+          && int4range(new.overlap_start, new.overlap_end + 1, '[)')
   ) then
-    raise unique_violation using message = 'a participant already has a match for this date';
+    raise unique_violation using message = 'a participant already has an overlapping call';
   end if;
   return new;
 end;
 $$;
 
-drop trigger if exists matches_one_call_per_day on public.matches;
-create trigger matches_one_call_per_day
+drop trigger if exists matches_no_overlapping_calls on public.matches;
+create trigger matches_no_overlapping_calls
 before insert or update on public.matches
-for each row execute function public.enforce_one_daily_call_match();
+for each row execute function public.enforce_non_overlapping_call_matches();
 
 -- ─────────────────────────────────────────────────────────────────────────
 -- invite_links + guest_responses: cold-start flow, no auth required to answer

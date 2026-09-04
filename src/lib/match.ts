@@ -23,12 +23,16 @@ export async function recomputeMatchesForUser(
   userId: string,
   date: string
 ): Promise<MatchWithFriend[]> {
-  // Repeated submissions keep the partner already established for this date.
   const existing = await getMatchesForUser(admin, userId, date);
-  if (existing.length > 0) return existing;
-
   const me = await getIntentAndAvailability(admin, userId, date);
   if (!me) return getMatchesForUser(admin, userId, date);
+
+  const occupied = new Set<SlotIndex>();
+  const existingPeerIds = new Set<string>();
+  for (const match of existing) {
+    existingPeerIds.add(match.friend.id);
+    for (let slot = match.overlap_start; slot <= match.overlap_end; slot++) occupied.add(slot);
+  }
 
   // 1. Build the candidate set.
   let candidateIds: string[] = [];
@@ -50,21 +54,18 @@ export async function recomputeMatchesForUser(
     }
   }
 
-  // 2. Score every available candidate. Only one match is created per day:
-  // longest overlap first, then the person who registered earlier.
-  const scored: Array<{
+  // 2. Collect mutually interested candidates and their already-booked slots.
+  const candidates: Array<{
     candidateId: string;
-    start: SlotIndex;
-    end: SlotIndex;
-    length: number;
+    availability: SlotIndex[];
+    occupied: Set<SlotIndex>;
     createdAt: string;
   }> = [];
   for (const candidateId of candidateIds) {
-    if (candidateId === userId) continue;
+    if (candidateId === userId || existingPeerIds.has(candidateId)) continue;
 
     const candidate = await getIntentAndAvailability(admin, candidateId, date);
     if (!candidate) continue;
-    if ((await getMatchesForUser(admin, candidateId, date)).length > 0) continue;
 
     const iWantThem =
       me.intent.mode === "selected"
@@ -77,27 +78,42 @@ export async function recomputeMatchesForUser(
 
     if (!iWantThem || !theyWantMe) continue;
 
-    const overlap = intersectSlots(me.availability, candidate.availability);
-    const run = longestContiguousRun(overlap);
-    if (!run) continue;
-
-    scored.push({
+    const candidateOccupied = new Set<SlotIndex>();
+    for (const match of await getMatchesForUser(admin, candidateId, date)) {
+      for (let slot = match.overlap_start; slot <= match.overlap_end; slot++) candidateOccupied.add(slot);
+    }
+    candidates.push({
       candidateId,
-      start: run.start,
-      end: run.end,
-      length: run.end - run.start + 1,
+      availability: candidate.availability,
+      occupied: candidateOccupied,
       createdAt: candidate.intent.createdAt,
     });
   }
 
-  scored.sort(
-    (a, b) =>
-      b.length - a.length ||
-      a.createdAt.localeCompare(b.createdAt) ||
-      a.candidateId.localeCompare(b.candidateId)
-  );
+  // 3. Greedily fill the caller's still-free slots. A person can have several
+  // calls in one day, but no two calls may occupy the same half-hour slot.
+  while (candidates.length > 0) {
+    const scored = candidates
+      .map((candidate) => {
+        const freeOverlap = intersectSlots(me.availability, candidate.availability)
+          .filter((slot) => !occupied.has(slot) && !candidate.occupied.has(slot));
+        const run = longestContiguousRun(freeOverlap);
+        return run
+          ? { ...candidate, start: run.start, end: run.end, length: run.end - run.start + 1 }
+          : null;
+      })
+      .filter((candidate): candidate is NonNullable<typeof candidate> => candidate !== null)
+      .sort(
+        (a, b) =>
+          b.length - a.length ||
+          a.createdAt.localeCompare(b.createdAt) ||
+          a.candidateId.localeCompare(b.candidateId)
+      );
+    if (scored.length === 0) break;
 
-  for (const candidate of scored) {
+    const candidate = scored[0];
+    const candidateIndex = candidates.findIndex((item) => item.candidateId === candidate.candidateId);
+    candidates.splice(candidateIndex, 1);
     const [userA, userB] = [userId, candidate.candidateId].sort();
     const { error: matchError } = await admin.from("matches").upsert(
       {
@@ -110,12 +126,11 @@ export async function recomputeMatchesForUser(
       { onConflict: "user_a,user_b,date" }
     );
     if (matchError) {
-      // The DB trigger resolves simultaneous requests. If another request
-      // booked either participant first, try the next scored candidate.
+      // A simultaneous request may have occupied this range first.
       if (matchError.code === "23505") continue;
       throw new Error(`failed to save match: ${matchError.message}`);
     }
-    break;
+    for (let slot = candidate.start; slot <= candidate.end; slot++) occupied.add(slot);
   }
 
   return getMatchesForUser(admin, userId, date);
