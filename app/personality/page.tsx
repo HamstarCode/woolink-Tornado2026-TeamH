@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { QUESTION_BANK } from "./data-questions";
 import { BALANCE_TYPE, TYPE_DATA } from "./data-types";
 import { supabase } from "@/lib/supabase";
+import "./personality.css";
 
 type Question = {
   id: string;
@@ -50,17 +51,6 @@ const ANGLES: Record<string, number> = {
   LM: 270,
   NO: 315,
 };
-
-function shuffle<T>(array: T[]): T[] {
-  const result = [...array];
-
-  for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
-  }
-
-  return result;
-}
 
 function average(values: number[]): number {
   return values.reduce((sum, value) => sum + value, 0) / values.length;
@@ -177,21 +167,24 @@ function calculateResult(answers: Record<string, number>): Result {
 
 export default function PersonalityPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnToProfile = searchParams.get("return") === "/profile";
 
   const [screen, setScreen] = useState<
     "quiz" | "calculating" | "result"
   >("quiz");
 
-  const [order, setOrder] = useState<Question[]>([]);
+  const [order] = useState<Question[]>(questions);
   const [answers, setAnswers] = useState<
     Record<string, number>
   >({});
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const advanceTimerRef = useRef<number | null>(null);
   const [result, setResult] = useState<Result | null>(null);
 
   // 結果の詳細表示
   const [showDetails, setShowDetails] = useState(false);
 
-  // DB保存中
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
 
@@ -203,11 +196,10 @@ export default function PersonalityPage() {
     return (answeredCount / order.length) * 100;
   }, [answeredCount, order.length]);
 
-  // =========================
-  // ページを開いたら診断開始
-  // =========================
-  useEffect(() => {
-    setOrder(shuffle(questions));
+  useEffect(() => () => {
+    if (advanceTimerRef.current !== null) {
+      window.clearTimeout(advanceTimerRef.current);
+    }
   }, []);
 
   const selectAnswer = (
@@ -218,6 +210,25 @@ export default function PersonalityPage() {
       ...previous,
       [questionId]: value,
     }));
+
+    if (advanceTimerRef.current !== null) {
+      window.clearTimeout(advanceTimerRef.current);
+    }
+
+    advanceTimerRef.current = window.setTimeout(() => {
+      if (currentQuestionIndex < order.length - 1) {
+        setCurrentQuestionIndex((previous) => previous + 1);
+      }
+      advanceTimerRef.current = null;
+    }, 180);
+  };
+
+  const showPreviousQuestion = () => {
+    if (advanceTimerRef.current !== null) {
+      window.clearTimeout(advanceTimerRef.current);
+      advanceTimerRef.current = null;
+    }
+    setCurrentQuestionIndex((previous) => Math.max(0, previous - 1));
   };
 
   const handleCalculate = () => {
@@ -232,77 +243,46 @@ export default function PersonalityPage() {
   useEffect(() => {
     if (screen !== "calculating") return;
 
-    const timer = window.setTimeout(async () => {
+    const timer = window.setTimeout(() => {
       const calculated = calculateResult(answers);
 
       setResult(calculated);
-
-      // =========================
-      // DB保存用の性格タイプを作成
-      // =========================
-      const personalityType = calculated.axisKey
-        ? `${calculated.axisKey}_${calculated.energyDir}`
-        : "balance";
-
-      setIsSaving(true);
       setSaveError("");
-
-      // ログイン中のユーザーを取得
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-
-      if (userError || !user) {
-        console.error(
-          "ログイン情報取得エラー:",
-          userError?.message
-        );
-
-        setSaveError(
-          "ログイン情報を取得できませんでした。"
-        );
-        setIsSaving(false);
-        setScreen("result");
-        return;
-      }
-
-      // =========================
-      // personality_typeを保存
-      // =========================
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .update({
-          personality_type: personalityType,
-        })
-        .eq("id", user.id);
-
-      if (updateError) {
-        console.error(
-          "性格タイプ保存エラー:",
-          updateError.message
-        );
-
-        setSaveError(
-          "診断結果の保存に失敗しました。"
-        );
-      }
-
-      setIsSaving(false);
       setScreen("result");
     }, 900);
 
     return () => window.clearTimeout(timer);
   }, [screen, answers]);
 
-  // 後から設定画面などで再利用できるように残しておく
-  const startQuiz = () => {
-    setOrder(shuffle(questions));
-    setAnswers({});
-    setResult(null);
-    setShowDetails(false);
+  const savePersonality = async () => {
+    if (!result || isSaving) return;
+
+    setIsSaving(true);
     setSaveError("");
-    setScreen("quiz");
+
+    const { data: authData, error: userError } = await supabase.auth.getUser();
+    if (userError || !authData.user) {
+      setSaveError("ログイン情報を取得できませんでした。");
+      setIsSaving(false);
+      return;
+    }
+
+    const personalityType = result.axisKey
+      ? `${result.axisKey}_${result.energyDir}`
+      : "balance";
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({ personality_type: personalityType })
+      .eq("id", authData.user.id);
+
+    if (updateError) {
+      console.error("性格タイプ保存エラー:", updateError.message);
+      setSaveError("診断結果の保存に失敗しました。");
+      setIsSaving(false);
+      return;
+    }
+
+    router.push(returnToProfile ? "/profile" : "/home");
   };
 
   const isBalance = result ? !result.axisKey : false;
@@ -314,140 +294,64 @@ export default function PersonalityPage() {
           `${result.axisKey}_${result.energyDir}`
         ]
     : null;
+  const currentQuestion = order[currentQuestionIndex];
 
   // =========================
   // 診断
   // =========================
   if (screen === "quiz") {
     return (
-      <main className="min-h-screen bg-[#fff8ef] px-5 py-8 text-[#3d332c]">
-        <div className="mx-auto max-w-xl">
-          <header className="mb-8">
-            <div className="h-1.5 overflow-hidden rounded-full bg-[#fbeee0]">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-[#ff8a63] to-[#ffc857] transition-all duration-300"
-                style={{
-                  width: `${progress}%`,
-                }}
-              />
+      <main className="personality-page personality-quiz-page">
+        <div className="personality-phone">
+          <header className="personality-progress-header">
+            <div className="personality-progress-label">
+              <button type="button" disabled={currentQuestionIndex === 0}
+                onClick={showPreviousQuestion}>
+                ← 前の質問
+              </button>
+              <span>{Math.min(currentQuestionIndex + 1, order.length)}/{order.length}</span>
             </div>
-
-            <div className="mt-3 flex items-center justify-between">
-              <span className="text-sm font-bold text-[#93857a]">
-                回答済み
-              </span>
-
-              <span className="text-sm font-bold text-[#93857a]">
-                <span className="text-[#ff8a63]">
-                  {answeredCount}
-                </span>
-
-                <span className="mx-1 opacity-50">
-                  /
-                </span>
-
-                {order.length}
-              </span>
+            <div className="personality-progress-track">
+              <div
+                className="personality-progress-value"
+                style={{ width: `${progress}%` }}
+              />
             </div>
           </header>
 
-          <div className="flex flex-col gap-8">
-            {order.map((question, questionIndex) => {
-              const currentAnswer =
-                answers[question.id];
+          {currentQuestion ? (
+            <section className="personality-question-card" key={currentQuestion.id}>
+              <p className="personality-question-number">質問 {currentQuestionIndex + 1}</p>
+              <h1>{currentQuestion.prompt}</h1>
+              <div className="personality-answer-labels">
+                <span>{currentQuestion.left}</span>
+                <span>{currentQuestion.right}</span>
+              </div>
+              <div className="personality-scale">
+                {[1, 2, 3, 4, 5].map((value) => (
+                  <button key={value} type="button" aria-label={`5段階中${value}`}
+                    aria-pressed={answers[currentQuestion.id] === value}
+                    className={answers[currentQuestion.id] === value ? "is-selected" : ""}
+                    onClick={() => selectAnswer(currentQuestion.id, value)}
+                  />
+                ))}
+              </div>
+            </section>
+          ) : (
+            <p className="personality-loading">ロード中...</p>
+          )}
 
-              return (
-                <section
-                  key={question.id}
-                  className="rounded-2xl border border-[#efe1cd] bg-white px-5 py-6"
-                >
-                  <p className="mb-2 text-xs font-bold text-[#ff8a63]">
-                    Q{questionIndex + 1}
-                  </p>
-
-                  <p className="text-base font-bold leading-7 sm:text-lg">
-                    {question.prompt}
-                  </p>
-
-                  <div className="mt-5 flex items-start justify-between gap-4">
-                    <p className="flex-1 text-left text-xs leading-5 text-[#93857a] sm:text-sm">
-                      {question.left}
-                    </p>
-
-                    <p className="flex-1 text-right text-xs leading-5 text-[#93857a] sm:text-sm">
-                      {question.right}
-                    </p>
-                  </div>
-
-                  <div className="mt-4 flex items-center justify-between gap-1 sm:gap-2">
-                    {[1, 2, 3, 4, 5].map(
-                      (value, i) => (
-                        <div
-                          key={value}
-                          className="flex flex-1 items-center"
-                        >
-                          <button
-                            type="button"
-                            aria-label={`5段階中${value}`}
-                            aria-pressed={
-                              value === currentAnswer
-                            }
-                            onClick={() =>
-                              selectAnswer(
-                                question.id,
-                                value
-                              )
-                            }
-                            className={`mx-auto rounded-full border-2 transition ${
-                              value === currentAnswer
-                                ? "border-[#ff8a63] bg-gradient-to-b from-[#ff9c78] to-[#ff8a63] shadow-[0_6px_16px_rgba(255,138,99,0.4)] scale-105"
-                                : "border-[#efe1cd] bg-white hover:border-[#ff8a63]"
-                            } ${
-                              value === 1 || value === 5
-                                ? "h-[44px] w-[44px] sm:h-[52px] sm:w-[52px]"
-                                : value === 2 || value === 4
-                                  ? "h-[39px] w-[39px] sm:h-[46px] sm:w-[46px]"
-                                  : "h-[34px] w-[34px] sm:h-[38px] sm:w-[38px]"
-                            }`}
-                          />
-
-                          {i < 4 && (
-                            <div className="h-0.5 flex-1 bg-[#efe1cd]" />
-                          )}
-                        </div>
-                      )
-                    )}
-                  </div>
-
-                  <div className="mt-2 flex justify-between px-1 text-[10px] text-[#b4a69a]">
-                    <span>1</span>
-                    <span>2</span>
-                    <span>3</span>
-                    <span>4</span>
-                    <span>5</span>
-                  </div>
-                </section>
-              );
-            })}
-          </div>
-
-          <div className="sticky bottom-0 mt-8 bg-[#fff8ef]/95 pb-5 pt-4 backdrop-blur-sm">
+          {currentQuestionIndex === order.length - 1 && order.length > 0 && (
+          <div className="personality-submit-wrap">
             <button
               type="button"
               onClick={handleCalculate}
-              disabled={
-                order.length === 0 ||
-                answeredCount !== order.length
-              }
-              className="w-full rounded-full bg-gradient-to-b from-[#ff9c78] to-[#ff8a63] px-9 py-4 text-base font-bold text-white shadow-[0_10px_24px_rgba(255,138,99,0.32)] disabled:cursor-not-allowed disabled:opacity-40"
+              disabled={answeredCount !== order.length}
             >
-              {order.length === 0
-                ? "読み込み中..."
-                : answeredCount === order.length
-                  ? "診断する"
-                  : `あと${order.length - answeredCount}問`}
+              {answeredCount === order.length ? "診断する" : "回答を選んでください"}
             </button>
           </div>
+          )}
         </div>
       </main>
     );
@@ -458,11 +362,10 @@ export default function PersonalityPage() {
   // =========================
   if (screen === "calculating") {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#fff8ef] text-[#3d332c]">
-        <div className="flex flex-col items-center gap-5">
-          <div className="h-[76px] w-[76px] animate-spin rounded-full border-[7px] border-[#fbeee0] border-t-[#ff8a63]" />
-
-          <p className="text-sm font-medium text-[#93857a]">
+      <main className="personality-page personality-calculating">
+        <div>
+          <span className="personality-spinner" />
+          <p>
             あなたの対人スタイルを診断しています…
           </p>
         </div>
@@ -489,10 +392,10 @@ export default function PersonalityPage() {
         : "border-[#efe1cd]";
 
     return (
-      <main className="min-h-screen bg-[#fff8ef] px-5 py-8 text-[#3d332c]">
-        <div className="mx-auto flex w-full max-w-xl flex-col gap-5 pb-10">
+      <main className="personality-page personality-result-page">
+        <div className="personality-result-phone">
           {/* 結果ヘッダー */}
-          <section className="rounded-3xl border border-[#efe1cd] bg-white px-6 py-7 text-center">
+          <section className="personality-result-hero">
             <p
               className={`text-xs font-bold tracking-[0.14em] ${accentColor}`}
             >
@@ -535,7 +438,7 @@ export default function PersonalityPage() {
           )}
 
           {/* 最初に見せる説明 */}
-          <section className="rounded-2xl border border-[#efe1cd] bg-white px-5 py-5">
+          <section className="personality-result-section">
             <h2 className="text-sm font-bold text-[#ff8a63]">
               どんな人？
             </h2>
@@ -548,7 +451,7 @@ export default function PersonalityPage() {
           {/* 詳細表示 */}
           {showDetails && (
             <div className="flex flex-col gap-5">
-              <section className="rounded-2xl border border-[#efe1cd] bg-white px-5 py-5">
+              <section className="personality-result-section">
                 <h2 className="text-sm font-bold text-[#ff8a63]">
                   話が合う相手
                 </h2>
@@ -560,7 +463,7 @@ export default function PersonalityPage() {
 
               {!isBalance &&
                 resultType.bestMatch && (
-                  <section className="rounded-2xl border border-[#efe1cd] bg-gradient-to-br from-[#ffe4d6] to-white px-5 py-5 text-center">
+                  <section className="personality-best-match">
                     <p className="text-xs font-bold text-[#93857a]">
                       最も相性がよいタイプ
                     </p>
@@ -585,19 +488,25 @@ export default function PersonalityPage() {
             onClick={() =>
               setShowDetails((previous) => !previous)
             }
-            className="w-full rounded-full border border-[#efe1cd] bg-white px-6 py-3 text-sm font-bold text-[#6f6259] transition hover:border-[#ff8a63]"
+            className="personality-detail-button"
           >
             {showDetails
               ? "詳細を閉じる"
               : "詳しく見る"}
           </button>
 
-          {/* ホーム */}
+          {/* 診断結果を保存 */}
         <button
           type="button"
-          onClick={() => router.push("/home")}
+          className="personality-home-button"
+          onClick={savePersonality}
+          disabled={isSaving}
         >
-          ホームへ
+          {isSaving
+            ? "保存中..."
+            : returnToProfile
+              ? "保存してプロフィールへ"
+              : "保存してホームへ"}
         </button>
         </div>
       </main>

@@ -140,3 +140,33 @@
     transition: none;
   }
 }
+/* ---------- Shared loading screen ---------- */
+
+.woolink-loading-screen {
+  display: grid;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 24px;
+  place-items: center;
+  color: #eef0fb;
+  background: radial-gradient(
+    120% 60% at 50% 100%,
+    #48619a 0%,
+    #223464 45%,
+    #0d1442 100%
+  );
+}
+
+.woolink-loading-text {
+  margin: 0;
+  color: #b7bce0;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+.woolink-loading-screen-with-header {
+  min-height: calc(100vh - 76px);
+  min-height: calc(100dvh - 76px);
+}

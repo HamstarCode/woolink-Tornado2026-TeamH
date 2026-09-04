@@ -1,0 +1,19 @@
+.profile-page { display:flex; justify-content:center; min-height:calc(100vh - 76px); color:#eef0fb; background:#0a1230; }
+.profile-phone { width:100%; max-width:420px; min-height:calc(100vh - 76px); padding:22px 20px 48px; background:radial-gradient(120% 60% at 50% 100%,#48619a 0%,#223464 45%,#0d1442 100%); }
+.profile-phone > h1 { margin:0; font-size:20px; }
+.profile-card { margin-top:18px; padding:20px 18px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.08); border-radius:16px; }
+.profile-avatar { display:grid; width:76px; height:76px; margin:0 auto 22px; place-items:center; color:#fff; font-size:28px; font-weight:700; background:linear-gradient(135deg,#6f7bf2,#4b57d6); border-radius:50%; }
+.profile-field + .profile-field { margin-top:17px; }
+.profile-field label,.profile-personality span { display:block; color:#b7bce0; font-size:11px; font-weight:700; }
+.profile-field input { width:100%; margin-top:7px; padding:12px 13px; color:#eef0fb; font:inherit; font-size:13px; background:rgba(0,0,0,.18); border:1px solid rgba(255,255,255,.16); border-radius:10px; }
+.profile-field input:focus { outline:2px solid #6f7bf2; border-color:transparent; }
+.profile-field input[readonly] { color:#b7bce0; cursor:default; }
+.profile-field p { margin:6px 2px 0; color:#858caf; font-size:10px; }
+.profile-personality { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-top:20px; padding:14px; background:rgba(255,255,255,.05); border-radius:12px; }
+.profile-personality strong { display:block; margin-top:5px; font-size:14px; }
+.profile-personality a { flex-shrink:0; color:#cfd3f0; font-size:11px; text-underline-offset:3px; }
+.profile-save { width:100%; margin-top:22px; padding:13px; color:#fff; font:inherit; font-size:13px; font-weight:700; background:linear-gradient(135deg,#6f7bf2,#4b57d6); border:0; border-radius:12px; cursor:pointer; }
+.profile-save:disabled { opacity:.45; cursor:not-allowed; }
+.profile-message { margin:14px 0 0; color:#dfe1f2; font-size:12px; text-align:center; }
+.profile-message.is-error { color:#ffd0d0; }
+.profile-loading { display:grid; width:100%; max-width:420px; min-height:calc(100vh - 76px); place-items:center; color:#b7bce0; background:radial-gradient(120% 60% at 50% 100%,#48619a 0%,#223464 45%,#0d1442 100%); font-size:13px; }

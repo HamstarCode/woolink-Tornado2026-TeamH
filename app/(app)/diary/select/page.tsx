@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import "./select.css";
 
@@ -130,9 +131,9 @@ export default function DiarySelectPage() {
           </section>
 
           <footer className="mascot-row">
-            <img
+            <Image
               className="mascot"
-              src="/UISOURCE/tornado_2026/Tornado_2026_diaryHome-main/Tornado_2026_diaryHome-main/picture/ガイド羊.svg"
+              src="/home/guide-sheep.svg"
               width="120"
               height="120"
               alt="ガイド羊"

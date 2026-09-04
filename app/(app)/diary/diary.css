@@ -102,12 +102,49 @@ body {
   margin-top: 16px;
 }
 
+.diary-card-loading {
+  display: grid;
+  min-height: 220px;
+  padding: 0;
+  place-items: center;
+  background: transparent;
+}
+
+.diary-loading-text {
+  margin: 0;
+  color: #b7bce0;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+}
+
 .diary-status {
   margin: 0 0 16px;
 
   font-size: 13px;
 
   color: #dfe1f2;
+}
+
+.diary-status-complete {
+  margin-bottom: 6px;
+  color: #f3f4fb;
+  font-weight: 700;
+}
+
+.diary-status-detail {
+  margin: 0;
+  color: #b7bce0;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.diary-status-detail + .diary-action {
+  margin-top: 16px;
+}
+
+.diary-status-error {
+  margin-bottom: 0;
+  color: #ffd0d0;
 }
 
 .diary-action {

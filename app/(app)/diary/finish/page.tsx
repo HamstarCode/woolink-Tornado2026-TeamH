@@ -2,8 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import "./finish.css";
 
-const GUIDE_SHEEP_SRC =
-  "/UISOURCE/tornado_2026/Tornado_2026_diaryHome-main/Tornado_2026_diaryHome-main/picture/ガイド羊.svg";
+const GUIDE_SHEEP_SRC = "/home/guide-sheep.svg";
 
 export default function DiaryFinishPage() {
   return (

@@ -15,7 +15,7 @@ export default function DiaryWritePage() {
     const saved = localStorage.getItem("draftDiary");
 
     if (saved !== null) {
-      setDiary(saved);
+      queueMicrotask(() => setDiary(saved));
     }
   }, []);
 

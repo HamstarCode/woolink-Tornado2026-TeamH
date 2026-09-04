@@ -1,0 +1,93 @@
+.settings-page {
+  display: flex;
+  justify-content: center;
+  min-height: calc(100vh - 76px);
+  color: #eef0fb;
+  background: #0a1230;
+}
+
+.settings-phone {
+  width: 100%;
+  max-width: 420px;
+  min-height: calc(100vh - 76px);
+  padding: 20px;
+  background: radial-gradient(
+    120% 60% at 50% 100%,
+    #48619a 0%,
+    #223464 45%,
+    #0d1442 100%
+  );
+}
+
+.settings-back {
+  padding: 8px 0;
+  color: #cfd3f0;
+  font: inherit;
+  font-size: 12px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.settings-phone > h1 {
+  margin: 14px 0 0;
+  font-size: 20px;
+}
+
+.settings-card {
+  margin-top: 18px;
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+}
+
+.settings-card-label {
+  margin: 0;
+  color: #f2c94c;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.settings-card h2 {
+  margin: 7px 0 0;
+  font-size: 15px;
+}
+
+.settings-description {
+  margin: 10px 0 0;
+  color: #b7bce0;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.settings-force-match {
+  width: 100%;
+  margin-top: 18px;
+  padding: 13px;
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #6f7bf2, #4b57d6);
+  border: 0;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.settings-force-match:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.settings-result {
+  margin: 14px 0 0;
+  color: #dfe1f2;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.settings-result.is-error {
+  color: #ffd0d0;
+}

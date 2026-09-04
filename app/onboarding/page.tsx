@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import "./onboarding.css";
 
 const PUBLIC_USER_ID_RETRY_LIMIT = 5;
 
@@ -140,12 +141,8 @@ export default function OnboardingPage() {
   // =========================
   if (checkingProfile) {
     return (
-      <main className="min-h-screen bg-gray-50 px-6 py-10">
-        <div className="mx-auto max-w-md">
-          <p className="text-sm text-gray-500">
-            確認中...
-          </p>
-        </div>
+      <main className="woolink-loading-screen" aria-busy="true">
+        <p className="woolink-loading-text">ロード中...</p>
       </main>
     );
   }
@@ -154,21 +151,11 @@ export default function OnboardingPage() {
   // 画面
   // =========================
   return (
-    <main className="min-h-screen bg-gray-50 px-6 py-10">
-      <div className="mx-auto max-w-md">
-        <h1 className="text-2xl font-bold text-gray-900">
-          Woolinkへようこそ
-        </h1>
-
-        <p className="mt-2 text-sm text-gray-500">
-          まずはプロフィールを作りましょう。
-        </p>
-
-        <div className="mt-8 rounded-xl bg-white p-6 shadow-sm">
-          <label
-            htmlFor="nickname"
-            className="text-sm font-medium text-gray-700"
-          >
+    <main className="onboarding-page">
+      <div className="onboarding-phone">
+        <section className="onboarding-panel">
+          <h1>まずはプロフィールを作りましょう</h1>
+          <label htmlFor="nickname">
             ニックネーム
           </label>
 
@@ -182,13 +169,10 @@ export default function OnboardingPage() {
             }}
             placeholder="ニックネームを入力"
             disabled={isSaving}
-            className="mt-2 w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-gray-400"
           />
 
           {error && (
-            <p className="mt-2 text-sm text-red-500">
-              {error}
-            </p>
+            <p className="onboarding-error">{error}</p>
           )}
 
           <button
@@ -197,11 +181,10 @@ export default function OnboardingPage() {
             disabled={
               nickname.trim() === "" || isSaving
             }
-            className="mt-6 w-full rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
           >
-            {isSaving ? "保存中..." : "次へ"}
+            {isSaving ? "保存中..." : "性格診断へすすむ"}
           </button>
-        </div>
+        </section>
       </div>
     </main>
   );

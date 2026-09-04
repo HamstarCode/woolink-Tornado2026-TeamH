@@ -8,17 +8,6 @@
  * clear（はっきり）は標準文＝結果画面の基本文として最も詳しく書かれている。
  */
 
-const COMPASS_POINTS = {
-  PA: { angle: 0,   label: '仕切る' },
-  BC: { angle: 45,  label: '駆け引き' },
-  DE: { angle: 90,  label: '事実' },
-  FG: { angle: 135, label: '自由' },
-  HI: { angle: 180, label: '支える' },
-  JK: { angle: 225, label: '素直' },
-  LM: { angle: 270, label: '温かさ' },
-  NO: { angle: 315, label: '社交' },
-};
-
 const TYPE_DATA = {
   PA_fast: {
     axis: 'PA', energy: 'fast', name: '船長タイプ', energyLabel: 'テンポが速い',
