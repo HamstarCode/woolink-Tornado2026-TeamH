@@ -11,6 +11,28 @@ const VIDEO_SERVICE_URL = process.env.NEXT_PUBLIC_VIDEO_SERVICE_URL
 
 type GeneratedVideo = { videoUrl: string };
 
+const POLL_INTERVAL_MS = 2_000;
+const GENERATION_TIMEOUT_MS = 5 * 60_000;
+
+async function waitForVideo(jobId: string): Promise<string> {
+  const deadline = Date.now() + GENERATION_TIMEOUT_MS;
+  while (Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+    const response = await fetch(`${VIDEO_SERVICE_URL}/jobs/${encodeURIComponent(jobId)}`, {
+      cache: "no-store",
+    });
+    const data = await response.json().catch(() => null) as {
+      status?: string;
+      videoUrl?: string;
+      error?: string;
+    } | null;
+    if (!response.ok) throw new Error(data?.error || "動画の生成状況を確認できませんでした。");
+    if (data?.status === "failed") throw new Error(data.error || "動画生成に失敗しました。");
+    if (data?.status === "completed" && data.videoUrl) return data.videoUrl;
+  }
+  throw new Error("動画生成に時間がかかっています。もう一度お試しください。");
+}
+
 export default function DiaryMoviePage() {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -48,19 +70,20 @@ export default function DiaryMoviePage() {
     try {
       const form = new FormData();
       photos.forEach((photo) => form.append("photos", photo));
-      const response = await fetch(`${VIDEO_SERVICE_URL}/generate`, {
+      const response = await fetch(`${VIDEO_SERVICE_URL}/generate-async`, {
         method: "POST",
         body: form,
       });
       const data = await response.json().catch(() => null) as {
-        videoUrl?: string;
+        jobId?: string;
         error?: string;
       } | null;
-      if (!response.ok || !data?.videoUrl) {
+      if (!response.ok || !data?.jobId) {
         throw new Error(data?.error || "動画生成に失敗しました。");
       }
+      const videoPath = await waitForVideo(data.jobId);
       // ハッカソン中は動画本体をWoolinkへ再アップロードせず、RenderのURLをそのまま交換する。
-      const remoteVideoUrl = new URL(data.videoUrl, VIDEO_SERVICE_URL).toString();
+      const remoteVideoUrl = new URL(videoPath, VIDEO_SERVICE_URL).toString();
       setGenerated({ videoUrl: remoteVideoUrl });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "動画生成に失敗しました。");
