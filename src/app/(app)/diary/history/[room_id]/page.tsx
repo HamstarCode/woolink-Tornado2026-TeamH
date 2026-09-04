@@ -17,6 +17,7 @@ export default function DiaryHistoryDetailPage() {
   const [detail, setDetail] = useState<DiaryHistoryDetail | null>(null);
   const [error, setError] = useState("");
   const { isBookmarked, toggleBookmark } = useBookmark(
+    detail?.partner_user_id,
     detail?.partner_public_user_id,
     detail?.partner_nickname,
   );

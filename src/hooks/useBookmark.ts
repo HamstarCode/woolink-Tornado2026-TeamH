@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 type Bookmark = { publicUserId: string; nickname: string };
 
@@ -25,40 +26,102 @@ function readBookmarks(): Bookmark[] {
   }
 }
 
-export function useBookmark(publicUserId?: string | null, nickname?: string | null) {
+async function migrateLocalBookmarks(
+  supabase: ReturnType<typeof createClient>,
+  userId: string,
+) {
+  const migrationKey = `bookmarks-db-migrated:${userId}`;
+  if (localStorage.getItem(migrationKey)) return;
+
+  const publicUserIds = readBookmarks().map((item) => item.publicUserId);
+  if (publicUserIds.length > 0) {
+    const { data: profiles, error: profileError } = await supabase
+      .from("profiles")
+      .select("id")
+      .in("public_user_id", publicUserIds);
+    if (profileError) return;
+    const rows = (profiles ?? [])
+      .filter((profile) => profile.id !== userId)
+      .map((profile) => ({ user_id: userId, target_user_id: profile.id }));
+    if (rows.length > 0) {
+      const { error } = await supabase
+        .from("bookmarks")
+        .upsert(rows, { onConflict: "user_id,target_user_id", ignoreDuplicates: true });
+      if (error) return;
+    }
+  }
+  localStorage.setItem(migrationKey, "1");
+}
+
+export function useBookmark(
+  targetUserId?: string | null,
+  publicUserId?: string | null,
+  nickname?: string | null,
+) {
+  const supabase = useMemo(() => createClient(), []);
   const [isBookmarked, setIsBookmarked] = useState(false);
 
-  const refresh = useCallback(() => {
-    setIsBookmarked(
-      Boolean(publicUserId) && readBookmarks().some((item) => item.publicUserId === publicUserId),
-    );
-  }, [publicUserId]);
+  const refresh = useCallback(async () => {
+    if (!targetUserId) {
+      setIsBookmarked(false);
+      return;
+    }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await migrateLocalBookmarks(supabase, user.id);
+    const { data, error } = await supabase
+      .from("bookmarks")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("target_user_id", targetUserId)
+      .maybeSingle();
+    if (!error) setIsBookmarked(Boolean(data));
+  }, [supabase, targetUserId]);
 
   useEffect(() => {
-    const frame = window.requestAnimationFrame(refresh);
-    window.addEventListener("storage", refresh);
-    window.addEventListener(CHANGE_EVENT, refresh);
-    window.addEventListener("focus", refresh);
-    window.addEventListener("pageshow", refresh);
+    const runRefresh = () => void refresh();
+    const frame = window.requestAnimationFrame(runRefresh);
+    window.addEventListener("storage", runRefresh);
+    window.addEventListener(CHANGE_EVENT, runRefresh);
+    window.addEventListener("focus", runRefresh);
+    window.addEventListener("pageshow", runRefresh);
     return () => {
       window.cancelAnimationFrame(frame);
-      window.removeEventListener("storage", refresh);
-      window.removeEventListener(CHANGE_EVENT, refresh);
-      window.removeEventListener("focus", refresh);
-      window.removeEventListener("pageshow", refresh);
+      window.removeEventListener("storage", runRefresh);
+      window.removeEventListener(CHANGE_EVENT, runRefresh);
+      window.removeEventListener("focus", runRefresh);
+      window.removeEventListener("pageshow", runRefresh);
     };
   }, [refresh]);
 
-  const toggleBookmark = useCallback(() => {
-    if (!publicUserId || !nickname) return;
+  const toggleBookmark = useCallback(async () => {
+    if (!targetUserId || !publicUserId || !nickname) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const next = !isBookmarked;
+    setIsBookmarked(next);
+    const { error } = next
+      ? await supabase.from("bookmarks").upsert(
+          { user_id: user.id, target_user_id: targetUserId },
+          { onConflict: "user_id,target_user_id", ignoreDuplicates: true },
+        )
+      : await supabase
+          .from("bookmarks")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("target_user_id", targetUserId);
+    if (error) {
+      setIsBookmarked(!next);
+      return;
+    }
+
     const bookmarks = readBookmarks();
-    const exists = bookmarks.some((item) => item.publicUserId === publicUserId);
-    const updated = exists
-      ? bookmarks.filter((item) => item.publicUserId !== publicUserId)
-      : [...bookmarks, { publicUserId, nickname }];
+    const updated = next
+      ? [...bookmarks.filter((item) => item.publicUserId !== publicUserId), { publicUserId, nickname }]
+      : bookmarks.filter((item) => item.publicUserId !== publicUserId);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     window.dispatchEvent(new Event(CHANGE_EVENT));
-  }, [nickname, publicUserId]);
+  }, [isBookmarked, nickname, publicUserId, supabase, targetUserId]);
 
   return { isBookmarked, toggleBookmark };
 }

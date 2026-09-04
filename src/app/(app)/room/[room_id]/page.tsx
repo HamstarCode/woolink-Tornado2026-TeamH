@@ -27,6 +27,7 @@ export default function RoomPage() {
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState("");
   const { isBookmarked, toggleBookmark } = useBookmark(
+    room?.partner_user_id,
     room?.partner_public_user_id,
     room?.partner_nickname,
   );

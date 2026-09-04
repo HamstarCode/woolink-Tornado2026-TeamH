@@ -81,6 +81,20 @@ create unique index if not exists friend_requests_one_pending_pair
   where status = 'pending';
 
 -- ─────────────────────────────────────────────────────────────────────────
+-- bookmarks: a signed-in user's saved diary partners, shared across devices.
+-- ─────────────────────────────────────────────────────────────────────────
+create table if not exists public.bookmarks (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  target_user_id uuid not null references public.profiles(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  unique (user_id, target_user_id),
+  check (user_id <> target_user_id)
+);
+
+grant select, insert, delete on table public.bookmarks to authenticated;
+
+-- ─────────────────────────────────────────────────────────────────────────
 -- daily_intents: one per user per date. mode is 'anyone' or 'selected'.
 -- ─────────────────────────────────────────────────────────────────────────
 create table if not exists public.daily_intents (
@@ -224,6 +238,7 @@ alter table public.sent_reminders enable row level security;
 alter table public.profiles enable row level security;
 alter table public.friendships enable row level security;
 alter table public.friend_requests enable row level security;
+alter table public.bookmarks enable row level security;
 alter table public.daily_intents enable row level security;
 alter table public.intent_targets enable row level security;
 alter table public.availabilities enable row level security;
@@ -264,6 +279,24 @@ create policy "read involved friend requests"
   on public.friend_requests for select
   to authenticated
   using (auth.uid() = sender_id or auth.uid() = receiver_id);
+
+drop policy if exists "read own bookmarks" on public.bookmarks;
+create policy "read own bookmarks"
+  on public.bookmarks for select
+  to authenticated
+  using (auth.uid() = user_id);
+
+drop policy if exists "insert own bookmarks" on public.bookmarks;
+create policy "insert own bookmarks"
+  on public.bookmarks for insert
+  to authenticated
+  with check (auth.uid() = user_id);
+
+drop policy if exists "delete own bookmarks" on public.bookmarks;
+create policy "delete own bookmarks"
+  on public.bookmarks for delete
+  to authenticated
+  using (auth.uid() = user_id);
 
 -- daily_intents: STRICTLY owner-only. This is the core privacy guarantee —
 -- nobody can ever read another user's intent directly.

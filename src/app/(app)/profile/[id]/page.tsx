@@ -19,6 +19,7 @@ export default function ProfileDetailPage() {
   const [friendError, setFriendError] = useState("");
   const [error, setError] = useState("");
   const { isBookmarked, toggleBookmark } = useBookmark(
+    profile?.partner_user_id,
     profile?.partner_public_user_id,
     profile?.partner_nickname,
   );
