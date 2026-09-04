@@ -68,7 +68,7 @@ export async function recomputeMatchesForUser(
     if (!run) continue;
 
     const [userA, userB] = [userId, candidateId].sort();
-    await admin.from("matches").upsert(
+    const { error: matchError } = await admin.from("matches").upsert(
       {
         user_a: userA,
         user_b: userB,
@@ -78,6 +78,9 @@ export async function recomputeMatchesForUser(
       },
       { onConflict: "user_a,user_b,date" }
     );
+    if (matchError) {
+      throw new Error(`failed to save match: ${matchError.message}`);
+    }
   }
 
   return getMatchesForUser(admin, userId, date);
@@ -88,30 +91,33 @@ async function getIntentAndAvailability(
   userId: string,
   date: string
 ): Promise<{ intent: IntentRow; availability: number[] } | null> {
-  const { data: intent } = await admin
+  const { data: intent, error: intentError } = await admin
     .from("daily_intents")
     .select("id, mode")
     .eq("user_id", userId)
     .eq("date", date)
     .maybeSingle();
+  if (intentError) throw new Error(`failed to read intent: ${intentError.message}`);
   if (!intent) return null;
 
   // Fetched regardless of mode: in 'selected' mode these are the hard
   // candidate restriction; in 'anyone' mode they're an optional priority
   // list that doesn't affect whether a match happens, only its display
   // order (see getMatchesForUser).
-  const { data: targetRows } = await admin
+  const { data: targetRows, error: targetsError } = await admin
     .from("intent_targets")
     .select("target_user_id")
     .eq("intent_id", intent.id);
+  if (targetsError) throw new Error(`failed to read intent targets: ${targetsError.message}`);
   const targets = (targetRows ?? []).map((t) => t.target_user_id as string);
 
-  const { data: availRow } = await admin
+  const { data: availRow, error: availabilityError } = await admin
     .from("availabilities")
     .select("slots")
     .eq("user_id", userId)
     .eq("date", date)
     .maybeSingle();
+  if (availabilityError) throw new Error(`failed to read availability: ${availabilityError.message}`);
 
   return {
     intent: { mode: intent.mode as IntentMode, targets },
@@ -120,12 +126,13 @@ async function getIntentAndAvailability(
 }
 
 async function areFriends(admin: SupabaseClient, a: string, b: string) {
-  const { data } = await admin
+  const { data, error } = await admin
     .from("friendships")
     .select("id")
     .eq("user_id", a)
     .eq("friend_id", b)
     .maybeSingle();
+  if (error) throw new Error(`failed to read friendship: ${error.message}`);
   return !!data;
 }
 
@@ -134,11 +141,12 @@ export async function getMatchesForUser(
   userId: string,
   date: string
 ): Promise<MatchWithFriend[]> {
-  const { data: matches } = await admin
+  const { data: matches, error: matchesError } = await admin
     .from("matches")
     .select("*")
     .eq("date", date)
     .or(`user_a.eq.${userId},user_b.eq.${userId}`);
+  if (matchesError) throw new Error(`failed to read matches: ${matchesError.message}`);
 
   if (!matches || matches.length === 0) return [];
 

@@ -115,6 +115,18 @@ create table if not exists public.availabilities (
   unique (user_id, date)
 );
 
+-- PostgREST table privileges are separate from RLS policies.
+grant select, insert, update, delete on table
+  public.daily_intents, public.intent_targets, public.availabilities
+  to authenticated;
+
+-- The matcher runs with the server-only service role. Explicit grants are
+-- required as well as RLS bypass when these tables are created manually.
+grant select on table
+  public.daily_intents, public.intent_targets, public.availabilities,
+  public.friendships, public.profiles
+  to service_role;
+
 -- ─────────────────────────────────────────────────────────────────────────
 -- matches: computed server-side only. user_a is always the lexicographically
 -- smaller uuid so (user_a, user_b, date) is a stable idempotency key.
@@ -130,6 +142,8 @@ create table if not exists public.matches (
   unique (user_a, user_b, date),
   check (user_a < user_b)
 );
+
+grant select, insert, update, delete on table public.matches to service_role;
 
 -- ─────────────────────────────────────────────────────────────────────────
 -- invite_links + guest_responses: cold-start flow, no auth required to answer
