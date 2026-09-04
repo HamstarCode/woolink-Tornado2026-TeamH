@@ -87,6 +87,34 @@ body {
   font-weight: 700;
 }
 
+/* ---------- Login (independent of the intro carousel) ---------- */
+
+.login-screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 20px;
+  text-align: center;
+}
+
+.login-logo {
+  display: block;
+  width: min(80vw, 300px);
+  height: auto;
+  object-fit: contain;
+}
+
+.login-tagline {
+  margin: 0;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+}
+
 .welcome-panel {
   width: min(100%, 340px);
   padding: 34px 20px 30px;
