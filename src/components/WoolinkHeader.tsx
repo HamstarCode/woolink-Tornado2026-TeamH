@@ -3,11 +3,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 export default function WoolinkHeader() {
   const router = useRouter();
+  const pathname = usePathname();
   const supabase = useMemo(() => createClient(), []);
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -18,6 +19,7 @@ export default function WoolinkHeader() {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
+
       if (
         menuOpen &&
         menuRef.current &&
@@ -28,20 +30,31 @@ export default function WoolinkHeader() {
         setMenuOpen(false);
       }
     };
+
     document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
   }, [menuOpen]);
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
+
     if (error) {
       console.error("ログアウトエラー:", error.message);
       return;
     }
+
     setMenuOpen(false);
     router.push("/");
     router.refresh();
   };
+
+  // 性格診断中は共通ヘッダーを表示しない
+  if (pathname === "/personality") {
+    return null;
+  }
 
   return (
     <>
@@ -72,7 +85,11 @@ export default function WoolinkHeader() {
       </header>
 
       {menuOpen && (
-        <nav ref={menuRef} id="woolink-menu" className="woolink-menu-panel">
+        <nav
+          ref={menuRef}
+          id="woolink-menu"
+          className="woolink-menu-panel"
+        >
           {[
             { href: "/home", label: "ホーム" },
             { href: "/diary", label: "交換日記" },
@@ -93,7 +110,11 @@ export default function WoolinkHeader() {
             </Link>
           ))}
 
-          <button type="button" className="woolink-menu-item" onClick={handleLogout}>
+          <button
+            type="button"
+            className="woolink-menu-item"
+            onClick={handleLogout}
+          >
             <span>ログアウト</span>
             <ArrowIcon />
           </button>
@@ -105,7 +126,12 @@ export default function WoolinkHeader() {
 
 function ArrowIcon() {
   return (
-    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      width="16"
+      height="16"
+      aria-hidden="true"
+    >
       <path
         d="M9 6l6 6-6 6"
         stroke="currentColor"
