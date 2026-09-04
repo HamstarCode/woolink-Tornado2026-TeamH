@@ -1,6 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import "./home.css";
+
+// 両思い通話は相手と両思いになるまでロックされている（実データと連携する箇所）
+const isMutualCallUnlocked = false;
 
 export default function HomePage() {
   return (
@@ -13,8 +17,7 @@ export default function HomePage() {
             <h1>友達一覧</h1>
 
             <p>
-              ここには友達ができると羊が増えていくような
-              表現を入れる予定です。
+              このあたりにもともと畑があって、友達ができると羊に変わるみたいなのできる？
             </p>
           </section>
 
@@ -88,132 +91,88 @@ export default function HomePage() {
               </span>
             </a>
 
-            <a
-              className="action-tile call"
-              href="/call"
-            >
-              <svg
-                className="tile-icon"
-                viewBox="0 0 48 48"
-                width="34"
-                height="34"
-                aria-hidden="true"
+            {isMutualCallUnlocked ? (
+              <a
+                className="action-tile call"
+                href="/call"
               >
-                <rect
-                  x="14"
-                  y="21"
-                  width="20"
-                  height="17"
-                  rx="3"
-                  fill="none"
-                  stroke="#8a90ad"
-                  strokeWidth="2.6"
-                />
+                <svg
+                  className="tile-icon"
+                  viewBox="0 0 48 48"
+                  width="34"
+                  height="34"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M17 11l6 7-4 4c2.2 4.5 5.5 7.8 10 10l4-4 7 6c-1.6 4.2-5.9 5.9-9.8 4.5-8.8-3.2-15.5-9.9-18.7-18.7C10.1 15.9 12.8 12.6 17 11Z"
+                    fill="none"
+                    stroke="#fbfaf6"
+                    strokeWidth="2.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
 
-                <path
-                  d="M18 21v-5a6 6 0 0 1 12 0v5"
-                  fill="none"
-                  stroke="#8a90ad"
-                  strokeWidth="2.6"
-                />
+                <span className="tile-label">
+                  両思い通話
+                </span>
+              </a>
+            ) : (
+              <span
+                className="action-tile call is-disabled"
+                aria-disabled="true"
+                tabIndex={-1}
+              >
+                <svg
+                  className="tile-icon"
+                  viewBox="0 0 48 48"
+                  width="34"
+                  height="34"
+                  aria-hidden="true"
+                >
+                  <rect
+                    x="14"
+                    y="21"
+                    width="20"
+                    height="17"
+                    rx="3"
+                    fill="none"
+                    stroke="#fbfaf6"
+                    strokeWidth="2.6"
+                  />
 
-                <circle
-                  cx="24"
-                  cy="29"
-                  r="2.2"
-                  fill="#8a90ad"
-                />
-              </svg>
+                  <path
+                    d="M18 21v-5a6 6 0 0 1 12 0v5"
+                    fill="none"
+                    stroke="#fbfaf6"
+                    strokeWidth="2.6"
+                  />
 
-              <span className="tile-label">
-                両思い通話
+                  <circle
+                    cx="24"
+                    cy="29"
+                    r="2.2"
+                    fill="#fbfaf6"
+                  />
+                </svg>
+
+                <span className="tile-label">
+                  両思い通話
+                </span>
               </span>
-            </a>
+            )}
           </section>
         </section>
 
         {/* Footer */}
         <footer className="mascot-row">
-          <svg
+          <Image
             className="mascot"
-            viewBox="0 0 120 110"
-            width="96"
-            height="88"
-            aria-hidden="true"
-          >
-            <ellipse
-              cx="60"
-              cy="60"
-              rx="52"
-              ry="46"
-              fill="#3a4a86"
-            />
-
-            <circle
-              cx="30"
-              cy="24"
-              r="8"
-              fill="#3a4a86"
-            />
-
-            <circle
-              cx="90"
-              cy="20"
-              r="6"
-              fill="#3a4a86"
-            />
-
-            <circle
-              cx="102"
-              cy="34"
-              r="5"
-              fill="#3a4a86"
-            />
-
-            <circle
-              cx="42"
-              cy="52"
-              r="4"
-              fill="#e7e6f2"
-            />
-
-            <circle
-              cx="70"
-              cy="52"
-              r="4"
-              fill="#e7e6f2"
-            />
-
-            <path
-              d="M44 66 Q56 74 68 66"
-              stroke="#e7e6f2"
-              strokeWidth="2.4"
-              fill="none"
-              strokeLinecap="round"
-            />
-
-            <text
-              x="60"
-              y="94"
-              textAnchor="middle"
-              fontSize="10"
-              fill="#c9cbe8"
-              fontFamily="'Hiragino Sans','Noto Sans JP',sans-serif"
-            >
-              ハムスター
-            </text>
-
-            <text
-              x="60"
-              y="104"
-              textAnchor="middle"
-              fontSize="10"
-              fill="#c9cbe8"
-              fontFamily="'Hiragino Sans','Noto Sans JP',sans-serif"
-            >
-              すぎる
-            </text>
-          </svg>
+            src="/home/guide-sheep.svg"
+            alt="ガイド羊"
+            width={120}
+            height={120}
+          />
 
           <a
             className="guide-bubble"
