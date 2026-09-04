@@ -5,15 +5,12 @@ import Avatar from "@/components/Avatar";
 import CallPanel from "@/components/CallPanel";
 import { formatRange } from "@/lib/slots";
 import { formatDateJa, slotDateTime } from "@/lib/date";
-import { lineShareUrl, copyText } from "@/lib/share";
 import { useCall } from "@/lib/webrtc/useCall";
 import type { MatchWithFriend } from "@/types/db";
 
 export default function MatchCard({ match }: { match: MatchWithFriend }) {
-  const [copied, setCopied] = useState(false);
   const range = formatRange(match.overlap_start, match.overlap_end);
   const scheduledLabel = `${formatDateJa(match.date)} ${range}`;
-  const message = `${scheduledLabel} なら話せそう！電話する？ 🌙`;
 
   // どちらの参加者が「自分」かは match 行から一意に決まる(friend が相手なので、
   // user_a / user_b のうち friend.id でない方が自分)。
@@ -145,27 +142,6 @@ export default function MatchCard({ match }: { match: MatchWithFriend }) {
           {notifyArmed ? "⏰ 時間になったら通知します" : "⏰ 時間になったら通知する"}
         </button>
       )}
-
-      <div className="flex gap-2">
-        <a
-          href={lineShareUrl(message)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex-1 text-center rounded-xl bg-[#06C755] text-white text-sm font-medium py-2.5 hover:brightness-105 transition"
-        >
-          LINEで連絡する
-        </a>
-        <button
-          onClick={async () => {
-            const ok = await copyText(message);
-            setCopied(ok);
-            setTimeout(() => setCopied(false), 1500);
-          }}
-          className="rounded-xl bg-white/5 text-moon/80 text-sm px-4 py-2.5 hover:bg-white/10 transition"
-        >
-          {copied ? "コピー済み" : "コピー"}
-        </button>
-      </div>
 
       <CallPanel
         call={call}
