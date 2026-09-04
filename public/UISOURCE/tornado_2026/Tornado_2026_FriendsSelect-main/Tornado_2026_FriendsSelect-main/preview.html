@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Woolink | 誰と話したい？（プレビュー）</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap');
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', 'Hiragino Sans', sans-serif;
+  background: #0a1230;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.phone {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 60% at 50% 100%, #48619a 0%, #223464 45%, #0d1442 100%);
+  color: #eef0fb;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Header ---------- */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  background: #0a1140;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.brand-name {
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.02em;
+  color: #f3f4fb;
+}
+
+.menu-btn {
+  width: 32px;
+  height: 26px;
+  background: none;
+  border: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.menu-btn span {
+  display: block;
+  height: 2.5px;
+  width: 100%;
+  background: #eef0fb;
+  border-radius: 2px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.menu-btn.open span:nth-child(1) { transform: translateY(11px) rotate(45deg); }
+.menu-btn.open span:nth-child(2) { opacity: 0; }
+.menu-btn.open span:nth-child(3) { transform: translateY(-11px) rotate(-45deg); }
+
+/* ---------- Dropdown menu ---------- */
+
+.menu-panel {
+  position: absolute;
+  top: 62px;
+  right: 16px;
+  z-index: 20;
+  width: 200px;
+  background: #f7f6f2;
+  border-radius: 14px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-panel[hidden] {
+  display: none;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 14px;
+  color: #2b2b3a;
+  text-decoration: none;
+  font-size: 14.5px;
+  border-radius: 10px;
+}
+
+.menu-item:not(:last-child) {
+  border-bottom: 1px solid #e7e5dd;
+  border-radius: 10px 10px 0 0;
+}
+
+.menu-item:active,
+.menu-item:hover {
+  background: #ece9e1;
+}
+
+.menu-item svg {
+  color: #9c9a90;
+  flex-shrink: 0;
+}
+
+/* ---------- Content ---------- */
+
+.content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.scroll-area {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 20px 20px 0;
+}
+
+.footer-actions {
+  flex-shrink: 0;
+  padding: 12px 20px 0;
+  box-shadow: 0 -12px 16px -8px rgba(5, 8, 24, 0.35);
+}
+
+.page-title {
+  margin: 4px 0 14px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #eef0fb;
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin: 0 0 14px;
+  font-size: 11px;
+  color: #b7bce0;
+  line-height: 1.5;
+}
+
+.notice-icon {
+  flex-shrink: 0;
+  color: #b7bce0;
+}
+
+/* ---------- Contact list ---------- */
+
+.contact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.contact-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.06);
+  border: none;
+  border-radius: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  width: 100%;
+}
+
+.contact-row.is-selected {
+  background: #4a3f22;
+  box-shadow: inset 0 0 0 1px #f2c94c;
+}
+
+.avatar {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #3b4470;
+  overflow: hidden;
+}
+
+.avatar-1 { background: #3b4470; }
+.avatar-2 { background: #4a4270; }
+.avatar-3 { background: #35507a; }
+.avatar-4 { background: #52406e; }
+.avatar-5 { background: #3c5a68; }
+.avatar-6 { background: #444a72; }
+
+.contact-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.contact-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #eef0fb;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.contact-tag {
+  font-size: 10px;
+  color: #f2c94c;
+  white-space: nowrap;
+}
+
+.radio-dot {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.35);
+  position: relative;
+}
+
+.contact-row.is-selected .radio-dot {
+  background: #f2c94c;
+  border-color: #f2c94c;
+}
+
+.contact-row.is-selected .radio-dot::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 7px;
+  height: 4px;
+  border-left: 2px solid #3a3620;
+  border-bottom: 2px solid #3a3620;
+  transform: translate(-50%, -60%) rotate(-45deg);
+}
+
+/* ---------- Invite box ---------- */
+
+.invite-box {
+  background: rgba(0,0,0,0.25);
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 4px;
+}
+
+.invite-label {
+  display: block;
+  font-size: 11px;
+  color: #b7bce0;
+  margin-bottom: 8px;
+}
+
+.invite-row {
+  display: flex;
+  gap: 8px;
+}
+
+.invite-input {
+  flex: 1;
+  min-width: 0;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #eef0fb;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.invite-input::placeholder {
+  color: #6d7290;
+}
+
+.invite-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: #eef0fb;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.invite-link {
+  display: block;
+  text-align: center;
+  margin: 14px 0 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #f2c94c;
+  text-decoration: underline;
+}
+
+/* ---------- Next button ---------- */
+
+.next-btn {
+  display: block;
+  text-align: center;
+  background: linear-gradient(135deg, #6f7bf2 0%, #4b57d6 100%);
+  color: #fff;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 16px;
+  border-radius: 999px;
+}
+
+/* ---------- Back button (bottom, centered) ---------- */
+
+.back-btn-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 20px 0 20px;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px solid rgba(255,255,255,0.55);
+  color: #eef0fb;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 12px 22px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.back-btn:active {
+  background: rgba(255,255,255,0.1);
+}
+
+/* ---------- Placeholder page ---------- */
+
+.placeholder-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 24px;
+  gap: 14px;
+}
+
+.placeholder-main h1 {
+  font-size: 18px;
+  color: #f3f4fb;
+  margin: 0;
+}
+
+.placeholder-main p {
+  font-size: 13px;
+  color: #a9adcf;
+  line-height: 1.8;
+  margin: 0;
+  max-width: 280px;
+}
+
+.placeholder-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.hidden { display: none !important; }
+#mainView, #placeholderView {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+</style>
+</head>
+<body>
+
+
+<div class="phone">
+<div id="mainView">
+  <header class="topbar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 40 40" width="26" height="26" aria-hidden="true">
+        <circle cx="20" cy="20" r="18" fill="#f4c95d"/>
+        <circle cx="14" cy="18" r="2.4" fill="#2a2550"/>
+        <circle cx="26" cy="18" r="2.4" fill="#2a2550"/>
+        <path d="M14 25 Q20 29 26 25" stroke="#2a2550" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+      </svg>
+      <span class="brand-name">Woolink</span>
+    </div>
+    <button class="menu-btn" id="menuBtn" aria-label="メニューを開く" aria-expanded="false" aria-controls="menuPanel">
+      <span></span><span></span><span></span>
+    </button>
+  </header>
+
+  <nav class="menu-panel" id="menuPanel" hidden>
+    <a class="menu-item" href="#" data-title="プロフィール">
+      <span>プロフィール</span><svg viewBox="0 0 24 24" width="16" height="16"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+    <a class="menu-item" href="#" data-title="お知らせ">
+      <span>お知らせ</span><svg viewBox="0 0 24 24" width="16" height="16"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+    <a class="menu-item" href="#" data-title="設定">
+      <span>設定</span><svg viewBox="0 0 24 24" width="16" height="16"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+    <a class="menu-item" href="#" data-title="ヘルプ">
+      <span>ヘルプ</span><svg viewBox="0 0 24 24" width="16" height="16"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+    <a class="menu-item" href="#" data-title="ログアウト">
+      <span>ログアウト</span><svg viewBox="0 0 24 24" width="16" height="16"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </nav>
+
+  <main class="content">
+    <div class="scroll-area">
+      <h1 class="page-title" id="pageTitle">誰と話したい？</h1>
+
+      <p class="notice">
+        <svg class="notice-icon" viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+        あなたが選んだことは、マッチするまで相手にはわかりません
+      </p>
+
+      <div class="contact-list" id="contactList" role="radiogroup" aria-label="話したい相手">
+        <button type="button" class="contact-row" data-name="Takumi">
+          <span class="avatar avatar-1">
+          <svg viewBox="0 0 40 40" width="22" height="22"><circle cx="20" cy="15" r="7" fill="#eef0fb"/><path d="M6 34c0-8 6-13 14-13s14 5 14 13" fill="none" stroke="#eef0fb" stroke-width="3" stroke-linecap="round"/></svg>
+        </span>
+        <span class="contact-main">
+          <span class="contact-name">Takumi</span>
+          <span class="contact-tag">🌙 サンプル</span>
+        </span>
+        <span class="radio-dot" aria-hidden="true"></span>
+      </button>
+
+      <button type="button" class="contact-row" data-name="Haru">
+        <span class="avatar avatar-2">
+          <svg viewBox="0 0 40 40" width="22" height="22"><circle cx="20" cy="15" r="7" fill="#eef0fb"/><path d="M6 34c0-8 6-13 14-13s14 5 14 13" fill="none" stroke="#eef0fb" stroke-width="3" stroke-linecap="round"/></svg>
+        </span>
+        <span class="contact-main">
+          <span class="contact-name">Haru</span>
+          <span class="contact-tag">🌙 サンプル</span>
+        </span>
+        <span class="radio-dot" aria-hidden="true"></span>
+      </button>
+
+      <button type="button" class="contact-row" data-name="Yuki">
+        <span class="avatar avatar-3">
+          <svg viewBox="0 0 40 40" width="22" height="22"><circle cx="20" cy="15" r="7" fill="#eef0fb"/><path d="M6 34c0-8 6-13 14-13s14 5 14 13" fill="none" stroke="#eef0fb" stroke-width="3" stroke-linecap="round"/></svg>
+        </span>
+        <span class="contact-main">
+          <span class="contact-name">Yuki</span>
+          <span class="contact-tag">🌙 サンプル</span>
+        </span>
+        <span class="radio-dot" aria-hidden="true"></span>
+      </button>
+
+      <button type="button" class="contact-row" data-name="Mei">
+        <span class="avatar avatar-4">
+          <svg viewBox="0 0 40 40" width="22" height="22"><circle cx="20" cy="15" r="7" fill="#eef0fb"/><path d="M6 34c0-8 6-13 14-13s14 5 14 13" fill="none" stroke="#eef0fb" stroke-width="3" stroke-linecap="round"/></svg>
+        </span>
+        <span class="contact-main">
+          <span class="contact-name">Mei</span>
+          <span class="contact-tag">🌙 サンプル</span>
+        </span>
+        <span class="radio-dot" aria-hidden="true"></span>
+      </button>
+
+      <button type="button" class="contact-row is-selected" data-name="Sara">
+        <span class="avatar avatar-5">
+          <svg viewBox="0 0 40 40" width="22" height="22"><circle cx="20" cy="15" r="7" fill="#eef0fb"/><path d="M6 34c0-8 6-13 14-13s14 5 14 13" fill="none" stroke="#eef0fb" stroke-width="3" stroke-linecap="round"/></svg>
+        </span>
+        <span class="contact-main">
+          <span class="contact-name">Sara</span>
+          <span class="contact-tag">🌙 サンプル</span>
+        </span>
+        <span class="radio-dot" aria-hidden="true"></span>
+      </button>
+
+      <button type="button" class="contact-row" data-name="takumim.igipkonto">
+        <span class="avatar avatar-6">
+          <svg viewBox="0 0 40 40" width="22" height="22"><circle cx="20" cy="15" r="7" fill="#eef0fb"/><path d="M6 34c0-8 6-13 14-13s14 5 14 13" fill="none" stroke="#eef0fb" stroke-width="3" stroke-linecap="round"/></svg>
+        </span>
+        <span class="contact-main">
+          <span class="contact-name">takumim.igipkonto</span>
+        </span>
+        <span class="radio-dot" aria-hidden="true"></span>
+      </button>
+
+      <button type="button" class="contact-row" data-name="takumi.maruseno">
+        <span class="avatar avatar-1">
+          <svg viewBox="0 0 40 40" width="22" height="22"><circle cx="20" cy="15" r="7" fill="#eef0fb"/><path d="M6 34c0-8 6-13 14-13s14 5 14 13" fill="none" stroke="#eef0fb" stroke-width="3" stroke-linecap="round"/></svg>
+        </span>
+        <span class="contact-main">
+          <span class="contact-name">takumi.maruseno</span>
+        </span>
+        <span class="radio-dot" aria-hidden="true"></span>
+      </button>
+
+      <div class="invite-box">
+        <label class="invite-label" for="inviteEmail">友達のメールアドレスで追加</label>
+        <div class="invite-row">
+          <input type="email" id="inviteEmail" class="invite-input" placeholder="friend@example.com">
+          <a class="invite-btn" href="#" data-title="友達を追加">追加</a>
+        </div>
+      </div>
+      </div>
+
+      <a class="invite-link" href="#" data-title="招待リンクを作る">友達がいない？招待リンクを作る</a>
+    </div>
+
+    <div class="footer-actions">
+      <a class="next-btn" id="nextBtn" href="#" data-title="次へ">次へ</a>
+
+      <div class="back-btn-wrap">
+        <button class="back-btn" id="backBtn">
+          <svg viewBox="0 0 24 24" width="14" height="14"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          戻る
+        </button>
+      </div>
+    </div>
+  </main>
+
+</div>
+  <div id="placeholderView" class="hidden">
+    <header class="topbar">
+      <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 40 40" width="26" height="26" aria-hidden="true">
+          <circle cx="20" cy="20" r="18" fill="#f4c95d"/>
+          <circle cx="14" cy="18" r="2.4" fill="#2a2550"/>
+          <circle cx="26" cy="18" r="2.4" fill="#2a2550"/>
+          <path d="M14 25 Q20 29 26 25" stroke="#2a2550" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        </svg>
+        <span class="brand-name">Woolink</span>
+      </div>
+    </header>
+    <main class="placeholder-main">
+      <div class="placeholder-icon">
+        <svg viewBox="0 0 24 24" width="28" height="28"><path d="M12 3v18M3 12h18" stroke="#8a90ad" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+      </div>
+      <h1 id="phTitle">仮ページ</h1>
+      <p>このページはまだ準備中です。ここに「<span id="phTitle2">この機能</span>」の画面が入る予定です。</p>
+      <button class="back-btn" id="phBackBtn">
+        <svg viewBox="0 0 24 24" width="14" height="14"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        戻る
+      </button>
+    </main>
+  </div>
+
+</div>
+
+<script>
+
+  const mainView = document.getElementById('mainView');
+  const placeholderView = document.getElementById('placeholderView');
+  const phTitle = document.getElementById('phTitle');
+  const phTitle2 = document.getElementById('phTitle2');
+
+  document.querySelectorAll('[data-title]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const title = el.getAttribute('data-title');
+      phTitle.textContent = title;
+      phTitle2.textContent = title;
+      mainView.classList.add('hidden');
+      placeholderView.classList.remove('hidden');
+    });
+  });
+
+  document.getElementById('phBackBtn').addEventListener('click', () => {
+    placeholderView.classList.add('hidden');
+    mainView.classList.remove('hidden');
+  });
+  /* ---------- 今日の日付をタイトルに反映 ---------- */
+  const WEEKDAY_JA = ['日', '月', '火', '水', '木', '金', '土'];
+  const today = new Date();
+  document.getElementById('pageTitle').textContent =
+    (today.getMonth() + 1) + '月' + today.getDate() + '日（' + WEEKDAY_JA[today.getDay()] + '）、誰と話したい？';
+
+  /* ---------- 戻るボタン ---------- */
+  document.getElementById('backBtn').addEventListener('click', () => {
+    if (window.history.length > 1) {
+      window.history.back();
+    }
+  });
+
+  /* ---------- ハンバーガーメニュー ---------- */
+  const menuBtn = document.getElementById('menuBtn');
+  const menuPanel = document.getElementById('menuPanel');
+
+  menuBtn.addEventListener('click', () => {
+    const isOpen = !menuPanel.hidden;
+    menuPanel.hidden = isOpen;
+    menuBtn.classList.toggle('open', !isOpen);
+    menuBtn.setAttribute('aria-expanded', String(!isOpen));
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!menuPanel.hidden && !menuPanel.contains(e.target) && !menuBtn.contains(e.target)) {
+      menuPanel.hidden = true;
+      menuBtn.classList.remove('open');
+      menuBtn.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  /* ---------- 相手の選択（ページ内で完結する単純な状態変更） ---------- */
+  const rows = document.querySelectorAll('.contact-row');
+  rows.forEach(row => {
+    row.addEventListener('click', () => {
+      rows.forEach(r => r.classList.remove('is-selected'));
+      row.classList.add('is-selected');
+    });
+  });
+</script>
+
+
+</body>
+</html>
