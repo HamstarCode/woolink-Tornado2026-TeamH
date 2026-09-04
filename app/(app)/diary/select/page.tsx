@@ -129,6 +129,20 @@ export default function DiarySelectPage() {
             </Link>
           </section>
 
+          <footer className="mascot-row">
+            <img
+              className="mascot"
+              src="/UISOURCE/tornado_2026/Tornado_2026_diaryHome-main/Tornado_2026_diaryHome-main/picture/ガイド羊.svg"
+              width="120"
+              height="120"
+              alt="ガイド羊"
+            />
+
+        <div className="tip-bubble">
+        文章で書くか、写真から作るか選んでね！
+        </div>
+          </footer>
+
           <div className="back-btn-wrap">
             <button
               type="button"
