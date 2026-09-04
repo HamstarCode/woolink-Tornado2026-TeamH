@@ -1,0 +1,37 @@
+.personality-page { display:flex; justify-content:center; min-height:100vh; color:#eef0fb; background:#0a1230; }
+.personality-phone,.personality-result-phone { width:100%; max-width:420px; min-height:100vh; padding:24px 20px 42px; background:linear-gradient(180deg,#eef0ff 0%,#aebaf8 28%,#5268dc 100%); color:#17204c; }
+.personality-progress-label { display:flex; align-items:center; justify-content:space-between; font-size:11px; font-weight:700; }
+.personality-progress-label button { padding:6px 0; color:#27366f; font:inherit; background:none; border:0; cursor:pointer; }
+.personality-progress-label button:disabled { opacity:.35; }
+.personality-progress-track { height:5px; margin-top:8px; overflow:hidden; background:rgba(255,255,255,.7); border-radius:999px; }
+.personality-progress-value { height:100%; background:linear-gradient(90deg,#f2d968,#5069e9); border-radius:999px; transition:width .25s ease; }
+.personality-question-card { margin-top:34px; padding:22px 16px 26px; background:rgba(255,255,255,.3); border:1px solid rgba(255,255,255,.42); border-radius:14px; box-shadow:0 12px 28px rgba(31,45,122,.12); }
+.personality-question-number { margin:0; color:#4b57b7; font-size:10px; font-weight:700; letter-spacing:.08em; }
+.personality-question-card h1 { min-height:54px; margin:10px 0 0; font-size:16px; line-height:1.7; text-align:center; }
+.personality-answer-labels { display:flex; justify-content:space-between; gap:16px; margin-top:24px; color:#374276; font-size:11px; line-height:1.5; }
+.personality-answer-labels span { flex:1; }
+.personality-answer-labels span:last-child { text-align:right; }
+.personality-scale { position:relative; display:flex; align-items:center; justify-content:space-between; margin-top:13px; }
+.personality-scale::before { position:absolute; right:18px; left:18px; height:2px; content:""; background:rgba(67,82,154,.25); }
+.personality-scale button { position:relative; z-index:1; width:34px; height:34px; background:#f8f9ff; border:2px solid rgba(79,99,194,.22); border-radius:50%; cursor:pointer; transition:.15s ease; }
+.personality-scale button:first-child,.personality-scale button:last-child { width:42px; height:42px; }
+.personality-scale button.is-selected { background:#6379e8; border-color:#fff; box-shadow:0 0 0 2px #6379e8; transform:scale(1.06); }
+.personality-submit-wrap { margin-top:22px; }
+.personality-submit-wrap button,.personality-home-button { width:100%; padding:13px; color:#fff; font:inherit; font-size:13px; font-weight:700; background:linear-gradient(135deg,#435ce1,#2947d4); border:0; border-radius:10px; cursor:pointer; }
+.personality-submit-wrap button:disabled { opacity:.45; }
+.personality-loading { margin-top:120px; color:#4c598f; font-size:13px; text-align:center; }
+.personality-calculating { align-items:center; background:linear-gradient(180deg,#dce2ff,#5268dc); }
+.personality-calculating > div { display:flex; flex-direction:column; align-items:center; gap:18px; color:#26356f; }
+.personality-calculating p { margin:0; font-size:13px; }
+.personality-spinner { width:64px; height:64px; border:6px solid rgba(255,255,255,.45); border-top-color:#435ce1; border-radius:50%; animation:personality-spin .8s linear infinite; }
+@keyframes personality-spin { to { transform:rotate(360deg); } }
+.personality-result-phone { display:flex; flex-direction:column; gap:14px; }
+.personality-result-hero,.personality-result-section,.personality-best-match { padding:20px 18px; background:rgba(255,255,255,.48); border:1px solid rgba(255,255,255,.55); border-radius:14px; }
+.personality-result-hero { text-align:center; }
+.personality-result-hero h1 { color:#17204c; font-size:24px; }
+.personality-result-hero p,.personality-result-section p,.personality-best-match p { color:#4a557f !important; }
+.personality-result-hero > p:first-child,.personality-result-section h2,.personality-best-match p:last-child { color:#334ed2 !important; }
+.personality-result-section h2 { font-size:13px; }
+.personality-detail-button { width:100%; padding:12px; color:#263778; font:inherit; font-size:13px; font-weight:700; background:rgba(255,255,255,.42); border:1px solid rgba(48,70,181,.45); border-radius:10px; cursor:pointer; }
+.personality-home-button { margin-top:0; }
+.personality-home-button:disabled { opacity:.55; cursor:wait; }

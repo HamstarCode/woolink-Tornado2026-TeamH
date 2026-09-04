@@ -1,0 +1,22 @@
+@import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap');
+
+.movie-page { min-height: 100vh; display: flex; justify-content: center; background: #0a1230; color: #eef0fb; font-family: 'Zen Maru Gothic', sans-serif; }
+.movie-phone { width: 100%; max-width: 420px; min-height: 100vh; padding: 26px 20px 54px; background: radial-gradient(120% 60% at 50% 100%, #48619a 0%, #223464 45%, #0d1442 100%); }
+.movie-back { border: 0; background: none; color: #d7daf0; padding: 8px 0; font: inherit; font-weight: 700; cursor: pointer; }
+.movie-heading { text-align: center; margin: 28px 0 30px; }
+.movie-heading h1 { margin: 0 0 8px; font-size: 25px; }
+.movie-heading p { margin: 0; color: #c7cae4; font-size: 14px; }
+.movie-file-input { display: none; }
+.movie-file-button, .movie-generate, .movie-primary, .movie-secondary { width: 100%; min-height: 56px; border-radius: 16px; font: inherit; font-weight: 700; cursor: pointer; }
+.movie-file-button { border: 1px solid rgba(224, 229, 255, .55); background: rgba(255,255,255,.04); color: #eef0fb; }
+.movie-photo-list { display: flex; gap: 8px; overflow-x: auto; margin: 14px 0; padding-bottom: 4px; }
+.movie-photo-list img { flex: 0 0 auto; border-radius: 10px; object-fit: cover; }
+.movie-generate, .movie-primary { margin-top: 18px; border: 0; background: linear-gradient(135deg, #6778ef, #304bd8); color: white; box-shadow: 0 10px 22px rgba(25,44,154,.28); }
+.movie-file-button:disabled, .movie-generate:disabled, .movie-primary:disabled, .movie-secondary:disabled { opacity: .55; cursor: default; }
+.movie-wait { margin: 20px 0; text-align: center; color: #cfd3ec; font-size: 13px; }
+.movie-result { margin-top: 28px; padding: 18px; text-align: center; border-radius: 22px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.08); }
+.movie-result video { display: block; width: min(100%, 280px); max-height: 430px; aspect-ratio: 9/16; object-fit: contain; margin: 0 auto; border-radius: 18px; background: #050817; }
+.movie-result h2 { margin: 18px 0 6px; font-size: 19px; }
+.movie-result p { margin: 0; color: #c7cae4; font-size: 12px; line-height: 1.7; }
+.movie-secondary { margin-top: 10px; border: 1px solid rgba(224,229,255,.5); background: rgba(255,255,255,.04); color: #eef0fb; }
+.movie-error { margin: 18px 0 0; padding: 12px; border-radius: 10px; background: rgba(255,95,120,.12); color: #ffd1d8; font-size: 13px; text-align: center; }

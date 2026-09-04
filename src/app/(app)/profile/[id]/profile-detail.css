@@ -1,0 +1,16 @@
+.partner-profile-page { display: flex; justify-content: center; min-height: calc(100vh - 76px); color: #eef0fb; background: #0a1230; }
+.partner-profile-phone { width: 100%; max-width: 420px; min-height: calc(100vh - 76px); padding: 22px 20px; background: radial-gradient(120% 60% at 50% 100%,#48619a 0%,#223464 45%,#0d1442 100%); }
+.partner-profile-back { color: #cfd3f0; font-size: 12px; text-decoration: none; }
+.partner-profile-card { margin-top: 24px; padding: 26px 20px; text-align: center; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.08); border-radius: 18px; }
+.partner-profile-avatar { display: grid; place-content: center; width: 74px; height: 74px; margin: 0 auto; color: #fff; font-size: 28px; font-weight: 700; background: linear-gradient(135deg,#6f7bf2,#4b57d6); border-radius: 50%; }
+.partner-profile-card h1 { margin: 14px 0 0; font-size: 20px; }
+.partner-profile-id,.partner-profile-type { margin: 8px 0 0; color: #b7bce0; font-size: 12px; }
+.partner-bookmark,.partner-friend-request { width: 100%; margin-top: 22px; padding: 13px; color: #fff; font: inherit; font-size: 13px; font-weight: 700; border-radius: 999px; cursor: pointer; }
+.partner-bookmark { background: linear-gradient(135deg,#6f7bf2,#4b57d6); border: 0; }
+.partner-friend-request { margin-top: 10px; color: #b7bce0; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.14); cursor: default; }
+.partner-friend-request.is-ready { color: #fff; border-color: rgba(153,164,255,.65); background: rgba(91,104,226,.3); cursor: pointer; }
+.partner-friend-request:disabled { opacity: .76; }
+.partner-request-link { display: inline-block; margin-top: 12px; color: #d6d9ff; font-size: 12px; }
+.partner-friend-error { margin: 10px 0 0; color: #ffb4b4; font-size: 11px; }
+.partner-profile-note { margin: 10px 8px 0; color: #9fa5c8; font-size: 10.5px; line-height: 1.6; }
+.partner-profile-error { margin-top: 30px; color: #ffd0d0; font-size: 13px; text-align: center; }
