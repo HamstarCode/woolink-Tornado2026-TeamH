@@ -1,0 +1,170 @@
+@import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap');
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  overflow: hidden;
+
+  font-family:
+    'Zen Maru Gothic',
+    'Hiragino Maru Gothic ProN',
+    'Hiragino Sans',
+    sans-serif;
+
+  background: #0a1230;
+}
+
+/* ---------- Diary Select ---------- */
+
+.select-page {
+  width: 100%;
+  min-height: 100vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+/* ---------- Phone ---------- */
+
+.select-phone {
+  position: relative;
+
+  width: 100%;
+  max-width: 420px;
+
+  height: 100vh;
+  min-height: 100vh;
+
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      120% 60% at 50% 100%,
+      #48619a 0%,
+      #223464 45%,
+      #0d1442 100%
+    );
+
+  color: #eef0fb;
+
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Content ---------- */
+
+.content {
+  flex: 1;
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 20px 20px 0;
+}
+
+.page-title {
+  margin: 12px 0 20px;
+
+  text-align: center;
+
+  font-size: 15px;
+  font-weight: 700;
+
+  color: #eef0fb;
+}
+
+/* ---------- Method ---------- */
+
+.method-actions {
+  display: flex;
+  gap: 16px;
+}
+
+.method-tile {
+  flex: 1;
+
+  aspect-ratio: 1 / 1;
+
+  border-radius: 20px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 14px;
+
+  text-decoration: none;
+
+  background:
+    linear-gradient(
+      155deg,
+      #6f7bf2 0%,
+      #5762e0 60%,
+      #4b57d6 100%
+    );
+
+  box-shadow:
+    0 10px 22px rgba(0, 0, 0, 0.25);
+}
+
+.method-illustration {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 44px;
+}
+
+.method-label {
+  font-size: 13px;
+  font-weight: 700;
+
+  color: #f5f5fb;
+}
+
+/* ---------- Back button ---------- */
+
+.back-btn-wrap {
+  margin-top: auto;
+
+  display: flex;
+  justify-content: center;
+
+  padding: 20px 0 20px;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 6px;
+
+  background: none;
+
+  border: 1px solid rgba(255, 255, 255, 0.55);
+
+  color: #eef0fb;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+
+  padding: 12px 22px;
+
+  border-radius: 999px;
+
+  cursor: pointer;
+}
+
+.back-btn:active {
+  background: rgba(255, 255, 255, 0.1);
+}

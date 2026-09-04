@@ -1,182 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import "./home.css";
-import { supabase } from "@/lib/supabase";
 
 export default function HomePage() {
-  const router = useRouter();
-
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLElement>(null);
-  const menuButtonRef = useRef<HTMLButtonElement>(null);
-
-  // =========================
-  // ログアウト
-  // =========================
-  const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-
-    if (error) {
-      console.error(
-        "ログアウトエラー:",
-        error.message
-      );
-      return;
-    }
-
-    router.replace("/");
-  };
-
-  // =========================
-  // メニュー外をクリックしたら閉じる
-  // =========================
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node;
-
-      if (
-        menuOpen &&
-        menuRef.current &&
-        !menuRef.current.contains(target) &&
-        menuButtonRef.current &&
-        !menuButtonRef.current.contains(target)
-      ) {
-        setMenuOpen(false);
-      }
-    };
-
-    document.addEventListener(
-      "click",
-      handleClickOutside
-    );
-
-    return () => {
-      document.removeEventListener(
-        "click",
-        handleClickOutside
-      );
-    };
-  }, [menuOpen]);
-
   return (
     <main className="woolink-home">
       <div className="phone">
-        {/* Header */}
-        <header className="topbar">
-          <div className="brand">
-            <svg
-              className="brand-mark"
-              viewBox="0 0 40 40"
-              width="26"
-              height="26"
-              aria-hidden="true"
-            >
-              <circle
-                cx="20"
-                cy="20"
-                r="18"
-                fill="#f4c95d"
-              />
-              <circle
-                cx="14"
-                cy="18"
-                r="2.4"
-                fill="#2a2550"
-              />
-              <circle
-                cx="26"
-                cy="18"
-                r="2.4"
-                fill="#2a2550"
-              />
-              <path
-                d="M14 25 Q20 29 26 25"
-                stroke="#2a2550"
-                strokeWidth="2.2"
-                fill="none"
-                strokeLinecap="round"
-              />
-            </svg>
-
-            <span className="brand-name">
-              Woolink
-            </span>
-          </div>
-
-          <button
-            ref={menuButtonRef}
-            className={`menu-btn ${
-              menuOpen ? "open" : ""
-            }`}
-            type="button"
-            aria-label="メニューを開く"
-            aria-expanded={menuOpen}
-            aria-controls="menuPanel"
-            onClick={() =>
-              setMenuOpen((previous) => !previous)
-            }
-          >
-            <span />
-            <span />
-            <span />
-          </button>
-        </header>
-
-        {/* Dropdown menu */}
-        {menuOpen && (
-          <nav
-            ref={menuRef}
-            className="menu-panel"
-            id="menuPanel"
-          >
-            <a
-              className="menu-item"
-              href="/profile"
-            >
-              <span>プロフィール</span>
-              <ArrowIcon />
-            </a>
-
-            <a
-              className="menu-item"
-              href="/notifications"
-            >
-              <span>お知らせ</span>
-              <ArrowIcon />
-            </a>
-
-            <a
-              className="menu-item"
-              href="/settings"
-            >
-              <span>設定</span>
-              <ArrowIcon />
-            </a>
-
-            <a
-              className="menu-item"
-              href="/help"
-            >
-              <span>ヘルプ</span>
-              <ArrowIcon />
-            </a>
-
-            {/* ログアウト */}
-            <button
-              type="button"
-              className="menu-item"
-              onClick={handleLogout}
-            >
-              <span>ログアウト</span>
-              <ArrowIcon />
-            </button>
-          </nav>
-        )}
 
         {/* Content */}
-        <main className="content">
+        <section className="content">
           <section className="friend-card">
             <h1>友達一覧</h1>
 
@@ -211,6 +43,7 @@ export default function HomePage() {
                   rx="3"
                   fill="#fbfaf6"
                 />
+
                 <rect
                   x="9"
                   y="10"
@@ -221,6 +54,7 @@ export default function HomePage() {
                   stroke="#dcd8cc"
                   strokeWidth="1"
                 />
+
                 <line
                   x1="14"
                   y1="17"
@@ -229,6 +63,7 @@ export default function HomePage() {
                   stroke="#c9c4b4"
                   strokeWidth="1.4"
                 />
+
                 <line
                   x1="14"
                   y1="22"
@@ -237,6 +72,7 @@ export default function HomePage() {
                   stroke="#c9c4b4"
                   strokeWidth="1.4"
                 />
+
                 <line
                   x1="14"
                   y1="27"
@@ -273,12 +109,14 @@ export default function HomePage() {
                   stroke="#8a90ad"
                   strokeWidth="2.6"
                 />
+
                 <path
                   d="M18 21v-5a6 6 0 0 1 12 0v5"
                   fill="none"
                   stroke="#8a90ad"
                   strokeWidth="2.6"
                 />
+
                 <circle
                   cx="24"
                   cy="29"
@@ -292,7 +130,7 @@ export default function HomePage() {
               </span>
             </a>
           </section>
-        </main>
+        </section>
 
         {/* Footer */}
         <footer className="mascot-row">
@@ -310,36 +148,42 @@ export default function HomePage() {
               ry="46"
               fill="#3a4a86"
             />
+
             <circle
               cx="30"
               cy="24"
               r="8"
               fill="#3a4a86"
             />
+
             <circle
               cx="90"
               cy="20"
               r="6"
               fill="#3a4a86"
             />
+
             <circle
               cx="102"
               cy="34"
               r="5"
               fill="#3a4a86"
             />
+
             <circle
               cx="42"
               cy="52"
               r="4"
               fill="#e7e6f2"
             />
+
             <circle
               cx="70"
               cy="52"
               r="4"
               fill="#e7e6f2"
             />
+
             <path
               d="M44 66 Q56 74 68 66"
               stroke="#e7e6f2"
@@ -347,6 +191,7 @@ export default function HomePage() {
               fill="none"
               strokeLinecap="round"
             />
+
             <text
               x="60"
               y="94"
@@ -357,6 +202,7 @@ export default function HomePage() {
             >
               ハムスター
             </text>
+
             <text
               x="60"
               y="104"
@@ -376,27 +222,8 @@ export default function HomePage() {
             ガイド
           </a>
         </footer>
+
       </div>
     </main>
-  );
-}
-
-function ArrowIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width="16"
-      height="16"
-      aria-hidden="true"
-    >
-      <path
-        d="M9 6l6 6-6 6"
-        stroke="currentColor"
-        strokeWidth="2"
-        fill="none"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
   );
 }
