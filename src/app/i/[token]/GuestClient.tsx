@@ -183,7 +183,7 @@ export default function GuestClient({ token }: { token: string }) {
               href="/"
               className="block w-full rounded-xl bg-white/5 text-moon/80 text-sm py-3"
             >
-              Tonightに登録する
+              Woolinkに登録する
             </Link>
           </div>
         </div>

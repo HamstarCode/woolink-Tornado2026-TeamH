@@ -1,21 +1,18 @@
--- Tonight — Woolink 版 交換日記 マイグレーション (2026-09-04)
+-- Woolink 交換日記マイグレーション (2026-09-04)
 -- schema.sql / call_migration.sql / diary_migration.sql の後に実行してください。
 --
--- 背景: 交換日記を、この tonight リポジトリ独自の diary_rooms/diary_entries/
+-- 背景: 交換日記を、旧 diary_rooms/diary_entries/
 -- diary_match_queue モデルから、チームで正となった Woolink UI
 -- (HamstarCode/woolink-Tornado2026-TeamH, commit 327ae85) 側のモデルへ
 -- 全面差し替えする。旧テーブル・旧 API は別途 DROP する（本ファイルの末尾）。
 --
 -- Woolink 側の元マイグレーション(20260904_create_diary_exchange.sql /
--- 20260904_unique_public_user_id.sql)を、tonight の profiles.id が
+-- 20260904_unique_public_user_id.sql)を、profiles.id が
 -- auth.users.id を指す点も含めてそのまま流用できたためほぼ無改変で移植。
 -- 変更点は1つだけ: public_user_id の発行を「オンボーディング画面での
 -- 手動 insert + クライアント側リトライ」から「handle_new_user() トリガーで
--- 自動採番（サーバー側リトライ）」に変えたこと — tonight は既に
--- handle_new_user() でプロフィール行を自動生成しており(Google/マジック
--- リンク/デモログインいずれの経路でも共通)、Woolink のオンボーディング
--- フォーム(ニックネーム入力 → profiles を手動 insert)は tonight 側では
--- 使っていないため。
+-- 自動採番（サーバー側リトライ）」に変えたこと。Googleログイン直後に
+-- プロフィールの土台を作り、オンボーディングで内容を更新する。
 
 -- ─────────────────────────────────────────────────────────────────────────
 -- profiles.public_user_id: 「公開ID」。友達登録なしで特定の相手に日記を
@@ -45,32 +42,18 @@ begin
 end;
 $$;
 
--- handle_new_user() を再定義: 既存の処理(profiles作成 / is_demo判定 /
--- デモ友達の自動フレンド化)はそのまま、public_user_id の採番だけ追加。
+-- Googleログイン時にプロフィールと公開IDを自動作成する。
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-  insert into public.profiles (id, name, avatar_url, is_demo, public_user_id)
+  insert into public.profiles (id, nickname, avatar_url, public_user_id)
   values (
     new.id,
     coalesce(new.raw_user_meta_data->>'name', split_part(new.email, '@', 1)),
     new.raw_user_meta_data->>'avatar_url',
-    new.email like '%@tonight.demo',
     public.generate_public_user_id()
   )
   on conflict (id) do nothing;
-
-  if new.email not like '%@tonight.demo' then
-    insert into public.friendships (user_id, friend_id)
-    select new.id, p.id from public.profiles p
-    where p.is_demo = true and p.name in ('Haru', 'Yuki', 'Mei', 'Ren')
-    on conflict (user_id, friend_id) do nothing;
-
-    insert into public.friendships (user_id, friend_id)
-    select p.id, new.id from public.profiles p
-    where p.is_demo = true and p.name in ('Haru', 'Yuki', 'Mei', 'Ren')
-    on conflict (user_id, friend_id) do nothing;
-  end if;
 
   return new;
 end;
@@ -91,7 +74,7 @@ end $$;
 
 -- ─────────────────────────────────────────────────────────────────────────
 -- rooms / submissions / submit_diary(): Woolink 側の元マイグレーションを
--- そのまま移植（profiles(id) 参照はそのまま tonight のプロフィールと合う）。
+-- そのまま移植（profiles(id) 参照は既存プロフィールと合う）。
 -- ─────────────────────────────────────────────────────────────────────────
 create table if not exists public.rooms (
   id uuid primary key default gen_random_uuid(),
@@ -276,7 +259,7 @@ revoke all on function public.submit_diary(text, text) from public;
 grant execute on function public.submit_diary(text, text) to authenticated;
 
 -- ─────────────────────────────────────────────────────────────────────────
--- 旧モデル(tonight 独自の diary_rooms/diary_entries/diary_match_queue)の
+-- 旧モデル(diary_rooms/diary_entries/diary_match_queue)の
 -- 撤去。↑の rooms/submissions/submit_diary() に完全に置き換わる。
 -- CASCADE で依存する RLS policy 等も一緒に消える。まだ本番でこの旧テーブルに
 -- データが入っている場合は、実行前に必要なら退避してください。

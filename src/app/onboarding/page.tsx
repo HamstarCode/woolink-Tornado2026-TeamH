@@ -22,7 +22,7 @@ export default function OnboardingPage() {
         router.replace("/");
         return;
       }
-      // tonight は handle_new_user トリガーで profiles を自動作成するので、
+      // handle_new_user トリガーで profiles を自動作成するので、
       // ここでは診断済みかどうかだけ見て分岐する。
       const { data: profile, error: profileError } = await supabase
         .from("profiles")

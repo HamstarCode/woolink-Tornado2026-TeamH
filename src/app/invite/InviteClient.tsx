@@ -51,7 +51,7 @@ export default function InviteClient() {
   }
 
   const message = invite
-    ? `Tonight\n今夜ちょっと話せる？\n${invite.url}`
+    ? `Woolink\n今夜ちょっと話せる？\n${invite.url}`
     : "";
 
   return (

@@ -56,21 +56,21 @@ const range = (from: string, to: string) => {
   assertEqual(wouldComputeOverlap, false, "§4 one-directional intent never reaches overlap/match logic");
 }
 
-// --- §17 demo scenario: Takumi 22:00-24:00, Haru 23:00-25:00 -> 23:00-24:00
+// --- Two users overlap from 23:00-24:00
 {
   const takumi = range("22:00", "24:00");
   const haru = range("23:00", "25:00");
   const run = longestContiguousRun(intersectSlots(takumi, haru))!;
-  assertEqual(formatRange(run.start, run.end), "23:00〜24:00", "§17 demo scenario A+B match window");
+  assertEqual(formatRange(run.start, run.end), "23:00〜24:00", "A+B match window");
 }
 
-// --- §17 demo scenario: guest C picks 23:30-24:30, overlapping Takumi's
+// --- Guest C overlaps user A from 23:30-24:00
 // 22:00-24:00 -> overlap should be 23:30-24:00
 {
   const takumi = range("22:00", "24:00");
   const guestC = range("23:30", "24:30");
   const run = longestContiguousRun(intersectSlots(takumi, guestC))!;
-  assertEqual(formatRange(run.start, run.end), "23:30〜24:00", "§17 demo scenario guest C overlap");
+  assertEqual(formatRange(run.start, run.end), "23:30〜24:00", "guest C overlap");
 }
 
 // --- late-night rollover formatting: slot 11 (25:30) should read as 25:30,

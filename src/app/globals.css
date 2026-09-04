@@ -4,7 +4,7 @@
  * Woolink — night-first, always dark. Screens carry their own hand-written
  * CSS (co-located `*.css` per route, ported from the Woolink UI). The
  * Tailwind tokens below stay for the components shared from the earlier
- * "tonight" build (CallPanel, MatchCard, Avatar, …) that still use utility
+ * Legacy call components (CallPanel, MatchCard, Avatar, …) that still use utility
  * classes.
  */
 :root {
