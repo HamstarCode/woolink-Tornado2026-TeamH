@@ -8,19 +8,38 @@
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   nickname text not null,
-  avatar_url text,
-  created_at timestamptz not null default now()
+  public_user_id text unique,
+  personality_type text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
+
+create or replace function public.generate_public_user_id()
+returns text
+language plpgsql
+as $$
+declare
+  candidate text;
+begin
+  loop
+    candidate := upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 6));
+    exit when not exists (
+      select 1 from public.profiles where upper(public_user_id) = candidate
+    );
+  end loop;
+  return candidate;
+end;
+$$;
 
 -- Auto-create a profile row whenever a Google-authenticated user is created.
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-  insert into public.profiles (id, nickname, avatar_url)
+  insert into public.profiles (id, nickname, public_user_id)
   values (
     new.id,
     coalesce(new.raw_user_meta_data->>'name', split_part(new.email, '@', 1)),
-    new.raw_user_meta_data->>'avatar_url'
+    public.generate_public_user_id()
   )
   on conflict (id) do nothing;
 

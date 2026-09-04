@@ -23,7 +23,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ tok
 
   const { data: creator } = await admin
     .from("profiles")
-    .select("nickname, avatar_url")
+    .select("nickname")
     .eq("id", invite.creator_user_id)
     .maybeSingle();
 
@@ -31,7 +31,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ tok
     date: invite.date,
     expired,
     creator: creator
-      ? { name: creator.nickname, avatar_url: creator.avatar_url }
+      ? { name: creator.nickname, avatar_url: null }
       : { name: "友達", avatar_url: null },
   });
 }

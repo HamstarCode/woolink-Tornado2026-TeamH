@@ -45,7 +45,7 @@ export default function DiaryRoomPage({ params }: { params: Promise<{ id: string
 
       const [{ data: submissions }, { data: partner }] = await Promise.all([
         supabase.from("submissions").select("*").eq("room_id", id),
-        supabase.from("profiles").select("nickname, avatar_url").eq("id", partnerId).maybeSingle(),
+        supabase.from("profiles").select("nickname").eq("id", partnerId).maybeSingle(),
       ]);
 
       const mine = (submissions ?? []).find((s) => s.user_id === user.id) as DiarySubmission | undefined;
@@ -54,7 +54,7 @@ export default function DiaryRoomPage({ params }: { params: Promise<{ id: string
       setState({
         kind: "ready",
         partnerName: partner?.nickname ?? "相手",
-        partnerAvatar: partner?.avatar_url ?? null,
+        partnerAvatar: null,
         mine: mine ?? null,
         theirs: theirs ?? null,
       });

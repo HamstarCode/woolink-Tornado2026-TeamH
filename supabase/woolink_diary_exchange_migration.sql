@@ -46,11 +46,10 @@ $$;
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-  insert into public.profiles (id, nickname, avatar_url, public_user_id)
+  insert into public.profiles (id, nickname, public_user_id)
   values (
     new.id,
     coalesce(new.raw_user_meta_data->>'name', split_part(new.email, '@', 1)),
-    new.raw_user_meta_data->>'avatar_url',
     public.generate_public_user_id()
   )
   on conflict (id) do nothing;

@@ -164,13 +164,13 @@ export async function getMatchesForUser(
   const friendIds = matches.map((m) => (m.user_a === userId ? m.user_b : m.user_a));
   const { data: profiles } = await admin
     .from("profiles")
-    .select("id, nickname, avatar_url")
+    .select("id, nickname")
     .in("id", friendIds);
 
   const profileMap = new Map((profiles ?? []).map((p) => [p.id, {
     id: p.id,
     name: p.nickname,
-    avatar_url: p.avatar_url,
+    avatar_url: null,
   }]));
 
   const result = matches.map((m) => {

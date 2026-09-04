@@ -46,12 +46,12 @@ export async function GET(request: Request) {
   const friendIds = matches.map((m) => (m.user_a === user.id ? m.user_b : m.user_a));
   const { data: profiles } = await supabase
     .from("profiles")
-    .select("id, nickname, avatar_url")
+    .select("id, nickname")
     .in("id", friendIds);
   const profileMap = new Map((profiles ?? []).map((p) => [p.id, {
     id: p.id,
     name: p.nickname,
-    avatar_url: p.avatar_url,
+    avatar_url: null,
   }]));
 
   const result: MatchWithFriend[] = matches.map((m) => {
