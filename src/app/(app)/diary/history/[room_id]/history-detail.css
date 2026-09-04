@@ -9,6 +9,8 @@
 .history-detail-sent { color: #222842; background: #e6e7f0; }
 .history-detail-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
 .history-detail-card-heading a { flex-shrink: 0; color: inherit; font-size: 10px; text-decoration: underline; text-underline-offset: 3px; }
+.history-detail-partner-actions { display: flex; flex-shrink: 0; align-items: center; gap: 9px; }
+.history-detail-partner-actions button { padding: 0; color: #f2c94c; font: inherit; font-size: 22px; line-height: 1; background: none; border: 0; cursor: pointer; }
 .history-detail-eyebrow { margin: 0; opacity: .72; font-size: 10px; font-weight: 700; }
 .history-detail-card h1 { margin: 5px 0 0; font-size: 16px; }
 .history-detail-diary { margin: 18px 0 0; font-size: 13px; line-height: 1.9; white-space: pre-wrap; overflow-wrap: anywhere; }

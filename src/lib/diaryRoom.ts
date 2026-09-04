@@ -31,6 +31,7 @@ export type DiaryHistoryDetail = {
   myDiary: string;
   partner_user_id: string | null;
   partner_nickname: string | null;
+  partner_public_user_id: string | null;
   partner_diary: string | null;
   my_reply_content: string | null;
   my_reply_reaction: string | null;
@@ -148,6 +149,7 @@ export async function getDiaryHistoryDetail(submissionId: string) {
       myDiary: mySubmission.diary,
       partner_user_id: null,
       partner_nickname: null,
+      partner_public_user_id: null,
       partner_diary: null,
       my_reply_content: null,
       my_reply_reaction: null,
@@ -174,6 +176,7 @@ export async function getDiaryHistoryDetail(submissionId: string) {
     myDiary: mySubmission.diary,
     partner_user_id: room.partner_user_id,
     partner_nickname: room.partner_nickname,
+    partner_public_user_id: room.partner_public_user_id,
     partner_diary: room.partner_diary,
     my_reply_content: room.my_reply_content,
     my_reply_reaction: room.my_reply_reaction,

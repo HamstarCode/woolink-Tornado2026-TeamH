@@ -8,6 +8,7 @@ import {
   type DiaryHistoryDetail,
 } from "@/lib/diaryRoom";
 import DiaryBody from "@/components/DiaryBody";
+import { useBookmark } from "@/hooks/useBookmark";
 import "./history-detail.css";
 
 export default function DiaryHistoryDetailPage() {
@@ -15,6 +16,10 @@ export default function DiaryHistoryDetailPage() {
   const roomId = params.room_id;
   const [detail, setDetail] = useState<DiaryHistoryDetail | null>(null);
   const [error, setError] = useState("");
+  const { isBookmarked, toggleBookmark } = useBookmark(
+    detail?.partner_public_user_id,
+    detail?.partner_nickname,
+  );
 
   useEffect(() => {
     let active = true;
@@ -66,9 +71,18 @@ export default function DiaryHistoryDetailPage() {
                   <p className="history-detail-eyebrow">相手から届いた日記</p>
                   <h1>{detail.partner_nickname}さんの日記</h1>
                 </div>
-                <Link href={`/profile/${detail.partner_user_id}?room=${detail.room_id}`}>
-                  プロフィール
-                </Link>
+                <div className="history-detail-partner-actions">
+                  <button
+                    type="button"
+                    onClick={toggleBookmark}
+                    aria-label={isBookmarked ? "ブックマークを解除" : "ブックマークする"}
+                  >
+                    {isBookmarked ? "★" : "☆"}
+                  </button>
+                  <Link href={`/profile/${detail.partner_user_id}?room=${detail.room_id}`}>
+                    プロフィール
+                  </Link>
+                </div>
               </div>
 
               <div className="history-detail-diary">

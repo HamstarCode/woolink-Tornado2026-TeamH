@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { getDiaryRoom, sendDiaryReply, type DiaryRoom } from "@/lib/diaryRoom";
 import DiaryBody from "@/components/DiaryBody";
+import { useBookmark } from "@/hooks/useBookmark";
 import "./room.css";
 
 const REACTIONS = [
@@ -14,8 +15,6 @@ const REACTIONS = [
   { emoji: "💭", label: "考えさせられました" },
 ];
 
-type Bookmark = { publicUserId: string; nickname: string };
-
 export default function RoomPage() {
   const params = useParams<{ room_id: string }>();
   const router = useRouter();
@@ -24,10 +23,13 @@ export default function RoomPage() {
   const [room, setRoom] = useState<DiaryRoom | null>(null);
   const [reply, setReply] = useState("");
   const [reaction, setReaction] = useState<string | null>(null);
-  const [isBookmarked, setIsBookmarked] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState("");
+  const { isBookmarked, toggleBookmark } = useBookmark(
+    room?.partner_public_user_id,
+    room?.partner_nickname,
+  );
 
   useEffect(() => {
     let active = true;
@@ -38,13 +40,6 @@ export default function RoomPage() {
         if (!active) return;
         setRoom(data);
 
-        const saved = localStorage.getItem("bookmarks");
-        const bookmarks: Bookmark[] = saved ? JSON.parse(saved) : [];
-        setIsBookmarked(
-          bookmarks.some(
-            (bookmark) => bookmark.publicUserId === data.partner_public_user_id,
-          ),
-        );
       } catch (cause) {
         if (active) {
           setError(
@@ -63,27 +58,6 @@ export default function RoomPage() {
       active = false;
     };
   }, [roomId]);
-
-  const toggleBookmark = () => {
-    if (!room) return;
-
-    const saved = localStorage.getItem("bookmarks");
-    const bookmarks: Bookmark[] = saved ? JSON.parse(saved) : [];
-    const updated = isBookmarked
-      ? bookmarks.filter(
-          (bookmark) => bookmark.publicUserId !== room.partner_public_user_id,
-        )
-      : [
-          ...bookmarks,
-          {
-            publicUserId: room.partner_public_user_id,
-            nickname: room.partner_nickname,
-          },
-        ];
-
-    localStorage.setItem("bookmarks", JSON.stringify(updated));
-    setIsBookmarked(!isBookmarked);
-  };
 
   const handleReply = async () => {
     if (!room || isSending || (!reply.trim() && !reaction)) return;

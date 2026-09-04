@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { getDiaryRoom, type DiaryRoom } from "@/lib/diaryRoom";
+import { useBookmark } from "@/hooks/useBookmark";
 import "./profile-detail.css";
 
-type Bookmark = { publicUserId: string; nickname: string };
 type FriendStatus = "loading" | "none" | "outgoing" | "incoming" | "friends";
 
 export default function ProfileDetailPage() {
@@ -14,11 +14,14 @@ export default function ProfileDetailPage() {
   const searchParams = useSearchParams();
   const roomId = searchParams.get("room");
   const [profile, setProfile] = useState<DiaryRoom | null>(null);
-  const [isBookmarked, setIsBookmarked] = useState(false);
   const [friendStatus, setFriendStatus] = useState<FriendStatus>("loading");
   const [sendingRequest, setSendingRequest] = useState(false);
   const [friendError, setFriendError] = useState("");
   const [error, setError] = useState("");
+  const { isBookmarked, toggleBookmark } = useBookmark(
+    profile?.partner_public_user_id,
+    profile?.partner_nickname,
+  );
 
   useEffect(() => {
     let active = true;
@@ -48,13 +51,6 @@ export default function ProfileDetailPage() {
         } else if (active) {
           setFriendStatus("none");
         }
-        const saved = localStorage.getItem("bookmarks");
-        const bookmarks: Bookmark[] = saved ? JSON.parse(saved) : [];
-        setIsBookmarked(
-          bookmarks.some(
-            (bookmark) => bookmark.publicUserId === room.partner_public_user_id,
-          ),
-        );
       } catch (cause) {
         if (active) {
           setError(
@@ -71,27 +67,6 @@ export default function ProfileDetailPage() {
       active = false;
     };
   }, [params.id, roomId]);
-
-  const toggleBookmark = () => {
-    if (!profile) return;
-
-    const saved = localStorage.getItem("bookmarks");
-    const bookmarks: Bookmark[] = saved ? JSON.parse(saved) : [];
-    const updated = isBookmarked
-      ? bookmarks.filter(
-          (bookmark) => bookmark.publicUserId !== profile.partner_public_user_id,
-        )
-      : [
-          ...bookmarks,
-          {
-            publicUserId: profile.partner_public_user_id,
-            nickname: profile.partner_nickname,
-          },
-        ];
-
-    localStorage.setItem("bookmarks", JSON.stringify(updated));
-    setIsBookmarked(!isBookmarked);
-  };
 
   const sendFriendRequest = async () => {
     if (!profile || sendingRequest || friendStatus !== "none") return;
