@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Woolink | 設定しました</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="phone">
+
+  <header class="topbar">
+    <div class="brand">
+      <img class="brand-logo" src="picture/woolinkロゴ.svg" alt="Woolink">
+    </div>
+    <button class="menu-btn" id="menuBtn" aria-label="メニューを開く" aria-expanded="false" aria-controls="menuPanel">
+      <span></span><span></span><span></span>
+    </button>
+  </header>
+
+  <nav class="menu-panel" id="menuPanel" hidden>
+    <a class="menu-item" href="placeholder.html?title=プロフィール">
+      <span>プロフィール</span><svg viewBox="0 0 24 24" width="16" height="16"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+    <a class="menu-item" href="placeholder.html?title=お知らせ">
+      <span>お知らせ</span><svg viewBox="0 0 24 24" width="16" height="16"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+    <a class="menu-item" href="placeholder.html?title=設定">
+      <span>設定</span><svg viewBox="0 0 24 24" width="16" height="16"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+    <a class="menu-item" href="placeholder.html?title=ヘルプ">
+      <span>ヘルプ</span><svg viewBox="0 0 24 24" width="16" height="16"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+    <a class="menu-item" href="placeholder.html?title=ログアウト">
+      <span>ログアウト</span><svg viewBox="0 0 24 24" width="16" height="16"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </nav>
+
+  <main class="content">
+    <div class="confirm-message">
+      <p class="confirm-datetime" id="confirmDatetime">9月3日<br>00:00〜00:00</p>
+      <p class="confirm-caption">に設定しました</p>
+    </div>
+
+    <div class="footer-actions">
+      <a class="home-btn" href="placeholder.html?title=ホームへ戻る">ホームへ戻る</a>
+    </div>
+  </main>
+
+</div>
+
+<script>
+  /* ---------- 今日の日付を反映 ---------- */
+  document.getElementById('confirmDatetime').innerHTML =
+    (new Date().getMonth() + 1) + '月' + new Date().getDate() + '日<br>00:00〜00:00';
+
+  /* ---------- ハンバーガーメニュー ---------- */
+  const menuBtn = document.getElementById('menuBtn');
+  const menuPanel = document.getElementById('menuPanel');
+
+  menuBtn.addEventListener('click', () => {
+    const isOpen = !menuPanel.hidden;
+    menuPanel.hidden = isOpen;
+    menuBtn.classList.toggle('open', !isOpen);
+    menuBtn.setAttribute('aria-expanded', String(!isOpen));
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!menuPanel.hidden && !menuPanel.contains(e.target) && !menuBtn.contains(e.target)) {
+      menuPanel.hidden = true;
+      menuBtn.classList.remove('open');
+      menuBtn.setAttribute('aria-expanded', 'false');
+    }
+  });
+</script>
+
+</body>
+</html>
