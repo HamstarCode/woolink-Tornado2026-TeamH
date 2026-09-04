@@ -93,7 +93,7 @@ export default function FriendsPage() {
     setRemovingId(null);
   };
 
-  return <WoolinkScreen title="フレンド" back="/home">
+  return <WoolinkScreen title="フレンド" back="/home" backAtTop>
     <section className="friend-add-box">
       <label htmlFor="friend-public-id">公開IDでフレンドを追加</label>
       <div>

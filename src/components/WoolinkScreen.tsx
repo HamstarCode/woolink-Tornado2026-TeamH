@@ -8,10 +8,12 @@ export default function WoolinkScreen({
   title,
   children,
   back = "/home",
+  backAtTop = false,
 }: {
   title: string;
   children: React.ReactNode;
   back?: string;
+  backAtTop?: boolean;
 }) {
   const router = useRouter();
   return (
@@ -28,9 +30,30 @@ export default function WoolinkScreen({
           padding: "22px 20px 40px",
         }}
       >
+        {backAtTop && (
+          <button
+            type="button"
+            onClick={() => router.push(back)}
+            style={{
+              alignSelf: "flex-start",
+              marginBottom: 16,
+              padding: "8px 16px",
+              borderRadius: 999,
+              border: "1px solid rgba(255,255,255,0.55)",
+              background: "none",
+              color: "#d7daf0",
+              fontSize: 13,
+              fontWeight: 700,
+              fontFamily: "inherit",
+              cursor: "pointer",
+            }}
+          >
+            ← 戻る
+          </button>
+        )}
         <h1 style={{ fontSize: 18, margin: "0 0 18px", fontWeight: 700 }}>{title}</h1>
         <div style={{ flex: 1 }}>{children}</div>
-        <button
+        {!backAtTop && <button
           type="button"
           onClick={() => router.push(back)}
           style={{
@@ -48,7 +71,7 @@ export default function WoolinkScreen({
           }}
         >
           ← 戻る
-        </button>
+        </button>}
       </div>
     </main>
   );
