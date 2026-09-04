@@ -103,8 +103,8 @@ create table if not exists public.intent_targets (
 
 -- ─────────────────────────────────────────────────────────────────────────
 -- availabilities: ONE set per user per day (not per-friend). `slots` holds
--- half-hour slot indices, where 0 = 11:00, 1 = 11:30, ... 11 = 16:30.
--- Window is 11:00 -> 17:00 => 12 slots, indices 0..11.
+-- half-hour slot indices, where 0 = 20:00, 1 = 20:30, ... 11 = 25:30.
+-- Window is 20:00 -> 26:00 => 12 slots, indices 0..11.
 -- ─────────────────────────────────────────────────────────────────────────
 create table if not exists public.availabilities (
   id uuid primary key default gen_random_uuid(),

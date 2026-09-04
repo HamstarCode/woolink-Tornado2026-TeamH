@@ -48,6 +48,9 @@ export default function MatchCard({ match }: { match: MatchWithFriend }) {
   const isUpcoming = nowMs < startsAt;
   const isActive = nowMs >= startsAt && nowMs < endsAt;
   const isPast = nowMs >= endsAt;
+  // A match itself is mutual consent, so both users may start early. The
+  // selected range remains the suggested time and is still used for notices.
+  const canCall = !isPast;
 
   // OS 通知（任意）。ユーザーが「時間になったら通知」を押したときだけ許可を求める。
   const [notifyArmed, setNotifyArmed] = useState(false);
@@ -82,11 +85,9 @@ export default function MatchCard({ match }: { match: MatchWithFriend }) {
   const callButtonLabel =
     call.phase !== "idle"
       ? "通話中…"
-      : isActive
-        ? "📞 いま通話する"
-        : isUpcoming
-          ? "予約時間前"
-          : "通話時間終了";
+      : canCall
+        ? "📞 今すぐ通話する"
+        : "通話時間終了";
 
   return (
     <div
@@ -126,10 +127,10 @@ export default function MatchCard({ match }: { match: MatchWithFriend }) {
 
       <button
         onClick={call.start}
-        disabled={call.phase !== "idle" || !isActive}
+        disabled={call.phase !== "idle" || !canCall}
         className={[
           "w-full rounded-xl text-sm font-medium py-3 disabled:opacity-40 disabled:cursor-not-allowed",
-          isActive ? "bg-accent text-night" : "bg-accent/90 text-night",
+          canCall ? "bg-accent text-night" : "bg-accent/90 text-night",
         ].join(" ")}
       >
         {callButtonLabel}

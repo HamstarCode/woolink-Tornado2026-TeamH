@@ -4,11 +4,11 @@
 export type IntentMode = "anyone" | "selected";
 export type GuestResponseType = "yes" | "no";
 
-/** Half-hour slot index. 0 = 11:00, 1 = 11:30, ... 11 = 16:30. */
+/** Half-hour slot index. 0 = 20:00, 1 = 20:30, ... 11 = 25:30 (翌1:30). */
 export type SlotIndex = number;
 
-export const SLOT_COUNT = 12; // 11:00 -> 17:00, 30-minute steps
-export const SLOT_START_HOUR = 11;
+export const SLOT_COUNT = 12; // 20:00 -> 26:00（翌2:00）, 30-minute steps
+export const SLOT_START_HOUR = 20;
 
 export interface Profile {
   id: string;

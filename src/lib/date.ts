@@ -1,4 +1,4 @@
-/** Current calendar date in Asia/Tokyo for the daytime call window. */
+/** Current calendar date in Asia/Tokyo for the nightly call window. */
 export function tonightDateJST(now: Date = new Date()): string {
   const jst = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
   const y = jst.getFullYear();
@@ -31,12 +31,12 @@ export function nextNDatesJST(n: number, base: string = tonightDateJST()): strin
 }
 
 /** Wall-clock Date for slot `slotIndex` on `dateStr` (YYYY-MM-DD). Slot 0 =
- * 11:00, in 30-minute steps. Uses the runtime's
+ * 20:00, in 30-minute steps; late slots naturally roll into the next day. Uses the runtime's
  * local timezone (the app is Asia/Tokyo-only). Used to schedule the
  * "話せる時間になりました" nudge on a match. */
 export function slotDateTime(dateStr: string, slotIndex: number): Date {
   const [y, m, d] = dateStr.split("-").map(Number);
-  return new Date(y, m - 1, d, 11, slotIndex * 30);
+  return new Date(y, m - 1, d, 20, slotIndex * 30);
 }
 
 /** Short label for the date-picker chips: "今日" / "明日" / "8/26（水）". */
