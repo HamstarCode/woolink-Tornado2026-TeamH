@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -60,46 +61,14 @@ export default function WoolinkHeader() {
     <>
       <header className="woolink-header">
         <div className="woolink-header-brand">
-          <svg
-            className="woolink-header-mark"
-            viewBox="0 0 40 40"
-            width="26"
-            height="26"
-            aria-hidden="true"
-          >
-            <circle
-              cx="20"
-              cy="20"
-              r="18"
-              fill="#f4c95d"
-            />
-
-            <circle
-              cx="14"
-              cy="18"
-              r="2.4"
-              fill="#2a2550"
-            />
-
-            <circle
-              cx="26"
-              cy="18"
-              r="2.4"
-              fill="#2a2550"
-            />
-
-            <path
-              d="M14 25 Q20 29 26 25"
-              stroke="#2a2550"
-              strokeWidth="2.2"
-              fill="none"
-              strokeLinecap="round"
-            />
-          </svg>
-
-          <span className="woolink-header-name">
-            Woolink
-          </span>
+          <Image
+            className="brand-name"
+            src="/woolink-logo.svg"
+            alt="Woolink"
+            width={120}
+            height={40}
+            priority
+          />
         </div>
 
         <button

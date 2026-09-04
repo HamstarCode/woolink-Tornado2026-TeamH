@@ -2,12 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { supabase } from "@/lib/supabase";
+import IntroCarousel from "./components/IntroCarousel";
+import LoginScreen from "./components/LoginScreen";
+import "./welcome.css";
+
+type Phase = "checking" | "intro" | "login";
 
 export default function TopPage() {
   const router = useRouter();
 
-  const [loading, setLoading] = useState(true);
+  const [phase, setPhase] = useState<Phase>("checking");
 
   // =========================
   // ログイン状態を確認
@@ -24,57 +30,44 @@ export default function TopPage() {
         return;
       }
 
-      setLoading(false);
+      // 2回目以降は "login" を直接選ぶだけでスキップ機能を追加できる
+      // （例: localStorage の閲覧済みフラグを見て分岐する）
+      setPhase("intro");
     };
 
     checkUser();
   }, [router]);
 
   // =========================
-  // Googleログイン
+  // アプリ立ち上げ画面（ログイン状態確認中）
   // =========================
-  const handleGoogleLogin = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/`,
-      },
-    });
-
-    if (error) {
-      console.error("Googleログインエラー:", error.message);
-    }
-  };
-
-  // =========================
-  // ログイン状態確認中
-  // =========================
-  if (loading) {
+  if (phase === "checking") {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-gray-50">
-        <p className="text-sm text-gray-500">
-          読み込み中...
-        </p>
+      <main className="welcome-page">
+        <div className="welcome-phone">
+          <div className="welcome-splash">
+            <Image
+              className="welcome-splash-logo"
+              src="/woolink-logo.svg"
+              alt="Woolink"
+              width={380}
+              height={126}
+              priority
+            />
+          </div>
+        </div>
       </main>
     );
   }
 
-  // =========================
-  // 画面
-  // =========================
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50">
-      <div className="text-center">
-        <h1 className="mb-6 text-3xl font-bold">
-          Woolink
-        </h1>
-
-        <button
-          onClick={handleGoogleLogin}
-          className="rounded-lg bg-gray-900 px-6 py-3 text-white"
-        >
-          Googleでログイン
-        </button>
+    <main className="welcome-page">
+      <div className="welcome-phone">
+        {phase === "intro" ? (
+          <IntroCarousel onFinish={() => setPhase("login")} />
+        ) : (
+          <LoginScreen />
+        )}
       </div>
     </main>
   );
