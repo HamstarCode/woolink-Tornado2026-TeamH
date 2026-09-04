@@ -1,13 +1,59 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { supabase } from "@/lib/supabase";
+import "./welcome.css";
+
+type IntroPage = {
+  heading?: string;
+  body: string[];
+  emphasis?: string;
+};
+
+// 初回説明（4ページ）。実装済み機能（交換日記・性格診断による相性マッチ・両想い通話）と
+// 内容がずれないよう、各ページの説明文はそれぞれの画面の実装に合わせている。
+const INTRO_PAGES: IntroPage[] = [
+  {
+    body: [
+      "夜、1人がさみしい",
+      "誰かと話したい",
+      "でも、誘ったら迷惑じゃないかな…",
+    ],
+    emphasis: "そんなあなたのためのアプリです",
+  },
+  {
+    heading: "①返事に焦らない交換日記",
+    body: [
+      "日記を書いたら、返事を待ち眠る。",
+      "ゆっくりやりとりができる交換日記で",
+      "日常の共有ができます。",
+    ],
+  },
+  {
+    heading: "②安心できる友達との出会い",
+    body: [
+      "あなたの対人タイプを診断。",
+      "結果をもとに相性の良いユーザーと",
+      "交換日記が行えます。",
+    ],
+  },
+  {
+    heading: "③友達との両思い通話",
+    body: [
+      "話せる時間に話せる人と。",
+      "「今、迷惑じゃないかな」",
+      "を解決します。",
+    ],
+  },
+];
 
 export default function TopPage() {
   const router = useRouter();
 
-  const [loading, setLoading] = useState(true);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [introStep, setIntroStep] = useState(0);
 
   // =========================
   // ログイン状態を確認
@@ -24,7 +70,7 @@ export default function TopPage() {
         return;
       }
 
-      setLoading(false);
+      setCheckingAuth(false);
     };
 
     checkUser();
@@ -47,34 +93,106 @@ export default function TopPage() {
   };
 
   // =========================
-  // ログイン状態確認中
+  // アプリ立ち上げ画面（ログイン状態確認中）
   // =========================
-  if (loading) {
+  if (checkingAuth) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-gray-50">
-        <p className="text-sm text-gray-500">
-          読み込み中...
-        </p>
+      <main className="welcome-page">
+        <div className="welcome-phone">
+          <div className="welcome-splash">
+            <Image
+              className="welcome-splash-logo"
+              src="/woolink-logo.svg"
+              alt="Woolink"
+              width={380}
+              height={126}
+              priority
+            />
+          </div>
+        </div>
       </main>
     );
   }
 
   // =========================
-  // 画面
+  // 初回説明（4ページ）＋ ログイン
   // =========================
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50">
-      <div className="text-center">
-        <h1 className="mb-6 text-3xl font-bold">
-          Woolink
-        </h1>
+  const page = INTRO_PAGES[introStep];
+  const isLastPage = introStep === INTRO_PAGES.length - 1;
 
-        <button
-          onClick={handleGoogleLogin}
-          className="rounded-lg bg-gray-900 px-6 py-3 text-white"
-        >
-          Googleでログイン
-        </button>
+  return (
+    <main className="welcome-page">
+      <div className="welcome-phone">
+        <div className="welcome-intro">
+          <p className="welcome-copy">ようこそ Woolinkへ！</p>
+
+          <div className="welcome-panel">
+            <div className="welcome-panel-copy">
+              {page.heading && (
+                <p className="welcome-panel-heading">{page.heading}</p>
+              )}
+
+              <p>
+                {page.body.map((line, i) => (
+                  <Fragment key={i}>
+                    {line}
+                    {i < page.body.length - 1 && <br />}
+                  </Fragment>
+                ))}
+              </p>
+
+              {page.emphasis && (
+                <p className="welcome-panel-emphasis">{page.emphasis}</p>
+              )}
+            </div>
+
+            <Image
+              className="welcome-app-icon"
+              src="/app-icon.svg"
+              alt=""
+              width={380}
+              height={130}
+              aria-hidden="true"
+            />
+
+            <div
+              className="welcome-page-indicators"
+              role="group"
+              aria-label="ページ選択"
+            >
+              {INTRO_PAGES.map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  className={`welcome-page-indicator${
+                    i === introStep ? " is-active" : ""
+                  }`}
+                  aria-label={`${i + 1}ページ目`}
+                  aria-pressed={i === introStep}
+                  onClick={() => setIntroStep(i)}
+                />
+              ))}
+            </div>
+          </div>
+
+          {isLastPage ? (
+            <button
+              type="button"
+              className="welcome-next-btn"
+              onClick={handleGoogleLogin}
+            >
+              Googleでログイン
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="welcome-next-btn"
+              onClick={() => setIntroStep((step) => step + 1)}
+            >
+              次へ
+            </button>
+          )}
+        </div>
       </div>
     </main>
   );
