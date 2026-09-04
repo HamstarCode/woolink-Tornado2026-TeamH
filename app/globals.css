@@ -21,11 +21,11 @@
   gap: 8px;
 }
 
-.woolink-header-name {
-  font-weight: 700;
-  font-size: 18px;
-  letter-spacing: 0.02em;
-  color: #f3f4fb;
+.brand-name {
+  display: block;
+  width: 120px;
+  height: 40px;
+  object-fit: contain;
 }
 
 .woolink-menu-btn {
