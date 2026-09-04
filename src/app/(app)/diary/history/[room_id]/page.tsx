@@ -7,6 +7,7 @@ import {
   getDiaryHistoryDetail,
   type DiaryHistoryDetail,
 } from "@/lib/diaryRoom";
+import DiaryBody from "@/components/DiaryBody";
 import "./history-detail.css";
 
 export default function DiaryHistoryDetailPage() {
@@ -70,7 +71,9 @@ export default function DiaryHistoryDetailPage() {
                 </Link>
               </div>
 
-              <p className="history-detail-diary">{detail.partner_diary}</p>
+              <div className="history-detail-diary">
+                <DiaryBody text={detail.partner_diary} />
+              </div>
 
               <section className="history-detail-reply">
                 <h2>あなたの返信</h2>
@@ -78,7 +81,7 @@ export default function DiaryHistoryDetailPage() {
                   <p className="history-detail-reaction">{detail.my_reply_reaction}</p>
                 )}
                 {detail.my_reply_content ? (
-                  <p>{detail.my_reply_content}</p>
+                  <DiaryBody text={detail.my_reply_content} />
                 ) : !detail.my_reply_reaction ? (
                   <p className="history-detail-muted">返信していません</p>
                 ) : null}
@@ -89,7 +92,9 @@ export default function DiaryHistoryDetailPage() {
             <article className="history-detail-card history-detail-sent">
               <p className="history-detail-eyebrow">あなたが送った日記</p>
               <h1>あなたの日記</h1>
-              <p className="history-detail-diary">{detail.myDiary}</p>
+              <div className="history-detail-diary">
+                <DiaryBody text={detail.myDiary} />
+              </div>
 
               <section className="history-detail-reply">
                 <h2>
@@ -103,7 +108,7 @@ export default function DiaryHistoryDetailPage() {
                   </p>
                 )}
                 {detail.partnerReplyContent ? (
-                  <p>{detail.partnerReplyContent}</p>
+                  <DiaryBody text={detail.partnerReplyContent} />
                 ) : !detail.partnerReplyReaction && detail.room_id ? (
                   <p className="history-detail-muted">
                     相手からの返信はまだありません

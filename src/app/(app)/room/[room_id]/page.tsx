@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { getDiaryRoom, sendDiaryReply, type DiaryRoom } from "@/lib/diaryRoom";
+import DiaryBody from "@/components/DiaryBody";
 import "./room.css";
 
 const REACTIONS = [
@@ -155,7 +156,9 @@ export default function RoomPage() {
               </div>
             </div>
 
-            <p className="room-diary">{room.partner_diary}</p>
+            <div className="room-diary">
+              <DiaryBody text={room.partner_diary} />
+            </div>
           </section>
 
           <section className="room-card">
@@ -168,7 +171,9 @@ export default function RoomPage() {
                   <p className="room-replied-reaction">{room.my_reply_reaction}</p>
                 )}
                 {room.my_reply_content && (
-                  <p className="room-replied-content">{room.my_reply_content}</p>
+                  <div className="room-replied-content">
+                    <DiaryBody text={room.my_reply_content} />
+                  </div>
                 )}
               </div>
             ) : isExpired ? (
