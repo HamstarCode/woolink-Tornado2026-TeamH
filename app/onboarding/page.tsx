@@ -4,6 +4,11 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
+const PUBLIC_USER_ID_RETRY_LIMIT = 5;
+
+const generatePublicUserId = () =>
+  crypto.randomUUID().replaceAll("-", "").slice(0, 6).toUpperCase();
+
 export default function OnboardingPage() {
   const router = useRouter();
 
@@ -95,22 +100,25 @@ export default function OnboardingPage() {
       return;
     }
 
-    // 公開IDを生成
-    const publicUserId = Math.random()
-      .toString(36)
-      .substring(2, 8)
-      .toUpperCase();
-
     // =========================
     // プロフィール作成
     // =========================
-    const { error: insertError } = await supabase
-      .from("profiles")
-      .insert({
+    let insertError: { code?: string; message: string } | null = null;
+
+    for (let attempt = 0; attempt < PUBLIC_USER_ID_RETRY_LIMIT; attempt += 1) {
+      const { error } = await supabase.from("profiles").insert({
         id: user.id,
         nickname: nickname.trim(),
-        public_user_id: publicUserId,
+        public_user_id: generatePublicUserId(),
       });
+
+      insertError = error;
+
+      if (!error) break;
+
+      // public_user_id の重複だけは、新しいIDを生成して再試行する。
+      if (error.code !== "23505") break;
+    }
 
     if (insertError) {
       console.error(
