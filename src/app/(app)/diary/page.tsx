@@ -50,6 +50,9 @@ export default function DiaryPage() {
     <main className="diary-page">
       <div className="diary-phone">
         <section className="diary-content">
+          <Link href="/home" className="diary-home-back">
+            ← 戻る
+          </Link>
           <section className="diary-friend-card">
             <h1>交換日記</h1>
             <p>

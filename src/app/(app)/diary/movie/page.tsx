@@ -160,7 +160,11 @@ export default function DiaryMoviePage() {
           {isGenerating ? "動画を生成しています..." : generated ? "もう一度生成する" : "動画を生成する！"}
         </button>
 
-        {isGenerating && <p className="movie-wait">写真に合う演出を考えています。少しお待ちください…</p>}
+        {isGenerating && (
+          <p className="movie-wait">
+            写真から動画を生成しています。通常2〜3分かかります。このままお待ちください。
+          </p>
+        )}
 
         {generated && (
           <section className="movie-result">

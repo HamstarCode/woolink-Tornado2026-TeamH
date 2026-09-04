@@ -59,6 +59,28 @@ body {
   flex: 1;
 }
 
+.diary-home-back {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 8px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 999px;
+  color: #d7daf0;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.diary-home-back:hover,
+.diary-home-back:focus-visible {
+  color: #f4c95d;
+}
+
+.diary-home-back:active {
+  background: rgba(255, 255, 255, 0.1);
+}
+
 .diary-friend-card {
   background: rgba(20, 28, 62, 0.55);
 
