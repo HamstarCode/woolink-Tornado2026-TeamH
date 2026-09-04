@@ -145,6 +145,38 @@ create table if not exists public.matches (
 
 grant select, insert, update, delete on table public.matches to service_role;
 
+-- A phone appointment is exclusive: neither participant may have another
+-- match on the same date. The advisory lock also closes the small race where
+-- two intent requests are matched at the same time.
+create or replace function public.enforce_one_daily_call_match()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  perform pg_advisory_xact_lock(hashtextextended(new.date::text, 0));
+  if exists (
+    select 1
+    from public.matches m
+    where m.date = new.date
+      and m.id <> new.id
+      and (
+        m.user_a in (new.user_a, new.user_b)
+        or m.user_b in (new.user_a, new.user_b)
+      )
+  ) then
+    raise unique_violation using message = 'a participant already has a match for this date';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists matches_one_call_per_day on public.matches;
+create trigger matches_one_call_per_day
+before insert or update on public.matches
+for each row execute function public.enforce_one_daily_call_match();
+
 -- ─────────────────────────────────────────────────────────────────────────
 -- invite_links + guest_responses: cold-start flow, no auth required to answer
 -- ─────────────────────────────────────────────────────────────────────────

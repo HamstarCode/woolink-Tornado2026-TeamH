@@ -1,11 +1,12 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { intersectSlots, longestContiguousRun } from "@/lib/slots";
-import type { IntentMode, MatchWithFriend } from "@/types/db";
+import type { IntentMode, MatchWithFriend, SlotIndex } from "@/types/db";
 
 interface IntentRow {
   mode: IntentMode;
   targets: string[]; // target_user_id list, only meaningful when mode === 'selected'
+  createdAt: string;
 }
 
 /**
@@ -22,6 +23,10 @@ export async function recomputeMatchesForUser(
   userId: string,
   date: string
 ): Promise<MatchWithFriend[]> {
+  // Repeated submissions keep the partner already established for this date.
+  const existing = await getMatchesForUser(admin, userId, date);
+  if (existing.length > 0) return existing;
+
   const me = await getIntentAndAvailability(admin, userId, date);
   if (!me) return getMatchesForUser(admin, userId, date);
 
@@ -45,12 +50,21 @@ export async function recomputeMatchesForUser(
     }
   }
 
-  // 2. Check mutual interest + overlap for each candidate, upsert matches.
+  // 2. Score every available candidate. Only one match is created per day:
+  // longest overlap first, then the person who registered earlier.
+  const scored: Array<{
+    candidateId: string;
+    start: SlotIndex;
+    end: SlotIndex;
+    length: number;
+    createdAt: string;
+  }> = [];
   for (const candidateId of candidateIds) {
     if (candidateId === userId) continue;
 
     const candidate = await getIntentAndAvailability(admin, candidateId, date);
     if (!candidate) continue;
+    if ((await getMatchesForUser(admin, candidateId, date)).length > 0) continue;
 
     const iWantThem =
       me.intent.mode === "selected"
@@ -67,20 +81,41 @@ export async function recomputeMatchesForUser(
     const run = longestContiguousRun(overlap);
     if (!run) continue;
 
-    const [userA, userB] = [userId, candidateId].sort();
+    scored.push({
+      candidateId,
+      start: run.start,
+      end: run.end,
+      length: run.end - run.start + 1,
+      createdAt: candidate.intent.createdAt,
+    });
+  }
+
+  scored.sort(
+    (a, b) =>
+      b.length - a.length ||
+      a.createdAt.localeCompare(b.createdAt) ||
+      a.candidateId.localeCompare(b.candidateId)
+  );
+
+  for (const candidate of scored) {
+    const [userA, userB] = [userId, candidate.candidateId].sort();
     const { error: matchError } = await admin.from("matches").upsert(
       {
         user_a: userA,
         user_b: userB,
         date,
-        overlap_start: run.start,
-        overlap_end: run.end,
+        overlap_start: candidate.start,
+        overlap_end: candidate.end,
       },
       { onConflict: "user_a,user_b,date" }
     );
     if (matchError) {
+      // The DB trigger resolves simultaneous requests. If another request
+      // booked either participant first, try the next scored candidate.
+      if (matchError.code === "23505") continue;
       throw new Error(`failed to save match: ${matchError.message}`);
     }
+    break;
   }
 
   return getMatchesForUser(admin, userId, date);
@@ -93,7 +128,7 @@ async function getIntentAndAvailability(
 ): Promise<{ intent: IntentRow; availability: number[] } | null> {
   const { data: intent, error: intentError } = await admin
     .from("daily_intents")
-    .select("id, mode")
+    .select("id, mode, created_at")
     .eq("user_id", userId)
     .eq("date", date)
     .maybeSingle();
@@ -120,7 +155,7 @@ async function getIntentAndAvailability(
   if (availabilityError) throw new Error(`failed to read availability: ${availabilityError.message}`);
 
   return {
-    intent: { mode: intent.mode as IntentMode, targets },
+    intent: { mode: intent.mode as IntentMode, targets, createdAt: intent.created_at as string },
     availability: (availRow?.slots as number[] | undefined) ?? [],
   };
 }
